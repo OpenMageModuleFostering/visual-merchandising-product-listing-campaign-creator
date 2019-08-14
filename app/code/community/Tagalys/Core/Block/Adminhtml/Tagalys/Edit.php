@@ -24,9 +24,9 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit extends Mage_Adminhtml_Block_Wid
 
         $setup_status = Mage::getModel('tagalys_core/config')->getTagalysConfig('setup_status');
         if ($setup_status == 'completed') {
-            return $this->__('Configuration');
+            return $this->__('Configuration - Need help? Visit <a href="http://support.tagalys.com" target="_blank">http://support.tagalys.com</a>');
         } else {
-            return $this->__('Setup');
+            return $this->__('Setup - Need help? Visit <a href="http://support.tagalys.com" target="_blank">http://support.tagalys.com</a>');
         }
     }
 

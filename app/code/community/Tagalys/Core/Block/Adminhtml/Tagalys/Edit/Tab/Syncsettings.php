@@ -36,43 +36,15 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Syncsettings extends Mage_Ad
             'tabindex' => 1
         ));
         
-        $setup_status = Mage::getModel('tagalys_core/config')->getTagalysConfig('setup_status');
-        if ($setup_status == 'complete') {
-        } else {
-            $fieldset->addField('agree_cron_enabled', 'checkbox', array(
-                'name'      => 'Checkbox',
-                'checked' => false,
-                'onclick'   => 'this.value = this.checked ? 1 : 0;',
-                'disabled' => false,
-                'after_element_html' => '<small>Cron is enabled on this Magento installation.<br><em><b><a target=_blank href="http://devdocs.magento.com/guides/m1x/install/installing_install.html#install-cron">Cron Documentation</a></b></em></small>',
-                'tabindex' => 1
-            ));
-
-            $fieldset->addField('agree_start_sync', 'checkbox', array(
-                'name'      => 'Checkbox',
-                'checked' => false,
-                'onclick'   => 'this.value = this.checked ? 1 : 0;',
-                'disabled' => false,
-                'after_element_html' => '<small>I agree to start syncing the selected stores.<br><em><b>We recommend you to do this at low traffic hours.</b></em></small>',
-                'tabindex' => 1
-            ));
-
-            $fieldset->addField('note_checkboxes', 'note', array(
-                'text' => $this->__('<em>Please check both checkboxes to continue.</em>'),
-            ));
-
-            $fieldset->addField('submit', 'submit', array(
-                'name' => 'tagalys_submit_action',
-                'value' => 'Save & Start Sync',
-                'class'=> "tagalys-btn",
-                'disabled' => true,
-                'style'   => "width:100%",
-                'onclick' => 'if(this.classList.contains(\'clicked\')) { return false; } else {  this.className += \' clicked\'; var that = this; setTimeout(function(){ that.value=\'Please wait…\'; that.disabled=true; }, 50); return true; }',
-                'after_element_html' => '<small><em></em></small>',
-                'tabindex' => 1
-            ));
-
-        }
+        $fieldset->addField('submit', 'submit', array(
+            'name' => 'tagalys_submit_action',
+            'value' => 'Save & Continue to Sync',
+            'class'=> "tagalys-btn",
+            'style'   => "width:100%",
+            'onclick' => 'if(this.classList.contains(\'clicked\')) { return false; } else {  this.className += \' clicked\'; var that = this; setTimeout(function(){ that.value=\'Please wait…\'; that.disabled=true; }, 50); return true; }',
+            'after_element_html' => '<small><em></em></small>',
+            'tabindex' => 1
+        ));
 
         $this->setForm($form);
         return parent::_prepareForm();

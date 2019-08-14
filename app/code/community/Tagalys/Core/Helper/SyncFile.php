@@ -41,31 +41,11 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
         }
     }
 
-    public function resyncCron() {
-        $utc_now = new DateTime("now", new DateTimeZone('UTC'));
-        $time_now = $utc_now->format(DateTime::ATOM);
-        Mage::getModel('tagalys_core/config')->setTagalysConfig("heartbeat:resyncCron", $time_now);
-        $stores = Mage::getModel('tagalys_core/config')->getTagalysConfig("stores", true);
-        if ($stores != NULL) {
-            foreach ($stores as $i => $store_id) {
-                $resync_required = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:resync_required");
-                if ($resync_required == '1') {
-                    $this->triggerFeedForStore($store_id);
-                    Mage::getModel('tagalys_core/config')->setTagalysConfig("store:$store_id:resync_required", '0');
-                }
-            }
+    public function sync($max_products = 500) {
+        $this->cron_instance_max_products = $max_products;
+        if ($this->per_page > $max_products) {
+            $this->per_page = $max_products;
         }
-    }
-
-    public function cron() {
-        $utc_now = new DateTime("now", new DateTimeZone('UTC'));
-        $time_now = $utc_now->format(DateTime::ATOM);
-        $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->getTagalysConfig("cron_heartbeat_sent");
-        if ($cron_heartbeat_sent == false) {
-            Mage::getSingleton('tagalys_core/client')->log('info', 'Cron heartbeat');
-            $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->setTagalysConfig("cron_heartbeat_sent", true);
-        }
-        Mage::getModel('tagalys_core/config')->setTagalysConfig("heartbeat:cron", $time_now);
         $stores = Mage::getModel('tagalys_core/config')->getTagalysConfig("stores", true);
         if ($stores != NULL) {
             $this->_checkAndSyncConfig();
@@ -77,7 +57,7 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
             }
             $updates_performed = array();
             foreach($stores as $i => $store_id) {
-                $updates_performed[$store_id] = $this->_cronForStore($store_id, $product_ids_from_updates_queue_for_cron_instance);
+                $updates_performed[$store_id] = $this->_syncForStore($store_id, $product_ids_from_updates_queue_for_cron_instance);
             }
             $updates_performed_for_all_stores = true;
             foreach ($stores as $i => $store_id) {
@@ -199,7 +179,7 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
         return $collection;
     }
 
-    public function _cronForStore($store_id, $product_ids_from_updates_queue_for_cron_instance) {
+    public function _syncForStore($store_id, $product_ids_from_updates_queue_for_cron_instance) {
         $updates_performed = false;
         $feed_response = $this->_generateFilePart($store_id, 'feed');
         $sync_file_status = $feed_response['sync_file_status'];

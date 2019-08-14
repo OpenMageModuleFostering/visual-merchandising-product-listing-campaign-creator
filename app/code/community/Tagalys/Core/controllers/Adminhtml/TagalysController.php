@@ -8,6 +8,7 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
 
     public function indexAction() {
         $this->_title('Tagalys Configuration');
+        // $this->_getSession()->addNotice($this->__('Need help? Visit <a href="http://support.tagalys.com" target="_blank">http://support.tagalys.com</a>'));
         $this->loadLayout();
         $this->_setActiveMenu('Tagalys/core');
         $this->renderLayout();
@@ -37,7 +38,7 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
                         $redirect_to_tab = 'api_credentials';
                     }
                     break;
-                case 'Save & Start Sync':
+                case 'Save & Continue to Sync':
                     try {
                         if (count($params['stores_for_tagalys']) > 0) {
                             Mage::getSingleton('tagalys_core/client')->log('info', 'Starting configuration sync', array('stores_for_tagalys' => $params['stores_for_tagalys']));
@@ -110,6 +111,138 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
             }
             return $this->_redirect('*/tagalys', array('_query' => 'tab='.$redirect_to_tab));
         }
+    }
+
+    public function syncmanuallyAction() {
+        Mage::helper("tagalys_core/SyncFile")->sync(25);
+        $syncStatus = $this->getSyncStatus();
+        $this->getResponse()->setBody(json_encode($syncStatus));
+    }
+    public function syncstatusAction() {
+        $syncStatus = $this->getSyncStatus();
+        $this->getResponse()->setBody(json_encode($syncStatus));
+    }
+
+    protected function getSyncStatus() {
+        $storesSyncRequired = false;
+        $waitingForTagalys = false;
+        $resyncScheduled = false;
+        $syncStatus = array();
+        $setup_status = Mage::getModel('tagalys_core/config')->getTagalysConfig('setup_status');
+        $setup_complete = ($setup_status == 'completed');
+        $syncStatus['setup_complete'] = $setup_complete;
+        $syncStatus['stores'] = array();
+        foreach (Mage::helper('tagalys_core')->getStoresForTagalys() as $key => $store_id) {
+            $this_store = array();
+            
+            $this_store['name'] = Mage::getModel('core/store')->load($store_id)->getName();
+            
+            $store_setup_complete = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:setup_complete");
+            $this_store['setup_complete'] = ($store_setup_complete == '1');
+
+            $store_feed_status = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:feed_status", true);
+            if ($store_feed_status != null) {
+                $status_for_client = '';
+                switch($store_feed_status['status']) {
+                    case 'pending':
+                        $status_for_client = 'Waiting to write to file';
+                        $storesSyncRequired = true;
+                        break;
+                    case 'processing':
+                        $status_for_client = 'Writing to file';
+                        $storesSyncRequired = true;
+                        break;
+                    case 'generated_file':
+                        $status_for_client = 'Generated file. Sending to Tagalys.';
+                        $storesSyncRequired = true;
+                        break;
+                    case 'sent_to_tagalys':
+                        $status_for_client = 'Waiting for Tagalys';
+                        $waitingForTagalys = true;
+                        break;
+                    case 'finished':
+                        $status_for_client = 'Finished';
+                        break;
+                }
+                $store_resync_required = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:resync_required");
+                if ($store_resync_required == '1') {
+                    $resyncScheduled = true;
+                    if ($status_for_client == 'Finished') {
+                        $status_for_client = 'Scheduled at 1 AM';
+                    }
+                }
+                if ($status_for_client == 'Writing to file' || $status_for_client == 'Waiting to write to file') {
+                    $completed_percentage = round(((int)$store_feed_status['completed_count'] / (int)$store_feed_status['products_count']) * 100, 2);
+                    $status_for_client = $status_for_client . ' (completed '.$completed_percentage.'%)';
+                }
+                $this_store['feed_status'] = $status_for_client;
+            } else {
+                $storesSyncRequired = true;
+            }
+
+            $store_updates_status = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:updates_status", true);
+            $remaining_updates = Mage::getModel('tagalys_core/queue')->getCollection()->count();
+            if ($this_store['setup_complete']) {
+                if ($remaining_updates > 0) {
+                    $storesSyncRequired = true;
+                    $this_store['updates_status'] = $remaining_updates . ' remaining';
+                } else {
+                    if ($store_updates_status == null) {
+                        $this_store['updates_status'] = 'Nothing to update';
+                    } else {
+                        switch($store_updates_status['status']) {
+                            case 'generated_file':
+                                $this_store['updates_status'] = 'Generated file. Sending to Tagalys.';
+                                $storesSyncRequired = true;
+                                break;
+                            case 'sent_to_tagalys':
+                                $this_store['updates_status'] = 'Waiting for Tagalys';
+                                $waitingForTagalys = true;
+                                break;
+                            case 'finished':
+                                $this_store['updates_status'] = 'Finished';
+                                break;
+                        }
+                    }
+                }
+            } else {
+                if ($remaining_updates > 0) {
+                    $this_store['updates_status'] = 'Waiting for feed sync';
+                } else {
+                    $this_store['updates_status'] = 'Nothing to update';
+                }
+            }
+
+            $syncStatus['stores'][$store_id] = $this_store;
+        }
+        $syncStatus['client_side_work_completed'] = false;
+        $config_sync_required = Mage::getModel('tagalys_core/config')->getTagalysConfig('config_sync_required');
+        if ($storesSyncRequired == true || $config_sync_required == '1') {
+            if ($storesSyncRequired == true) {
+                $syncStatus['status'] = 'Stores Sync Pending';
+            } else {
+                if ($config_sync_required == '1') {
+                    $syncStatus['status'] = 'Configuration Sync Pending';
+                } else {
+                    // should never come here
+                    $syncStatus['status'] = 'Pending';
+                }
+            }
+        } else {
+            $syncStatus['client_side_work_completed'] = true;
+            if ($waitingForTagalys) {
+                $syncStatus['waiting_for_tagalys'] = true;
+                $syncStatus['status'] = 'Waiting for Tagalys';
+            } else {
+                $syncStatus['status'] = 'Fully synced';
+            }
+        }
+
+        if ($resyncScheduled) {
+            $syncStatus['status'] = $syncStatus['status'] . '. Resync scheduled at 1 AM. You can resync manually by using the <strong>Trigger full products resync now</strong> option in the <strong>Support & Troubleshooting</strong> tab and then clicking on the <strong>Sync Manually</strong> button that will show below.';
+        }
+
+        return $syncStatus;
     }
 
     protected function _saveApiCredentials($params) {

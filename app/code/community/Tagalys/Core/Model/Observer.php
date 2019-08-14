@@ -24,11 +24,31 @@ class Tagalys_Core_Model_Observer extends Varien_Object {
     }
 
     public function syncCron() {
-        Mage::helper("tagalys_core/SyncFile")->cron();
+        $utc_now = new DateTime("now", new DateTimeZone('UTC'));
+        $time_now = $utc_now->format(DateTime::ATOM);
+        $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->getTagalysConfig("cron_heartbeat_sent");
+        if ($cron_heartbeat_sent == false) {
+            Mage::getSingleton('tagalys_core/client')->log('info', 'Cron heartbeat');
+            $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->setTagalysConfig("cron_heartbeat_sent", true);
+        }
+        Mage::getModel('tagalys_core/config')->setTagalysConfig("heartbeat:cron", $time_now);
+        Mage::helper("tagalys_core/SyncFile")->sync();
     }
 
     public function resyncCron() {
-        Mage::helper("tagalys_core/SyncFile")->resyncCron();
+        $utc_now = new DateTime("now", new DateTimeZone('UTC'));
+        $time_now = $utc_now->format(DateTime::ATOM);
+        Mage::getModel('tagalys_core/config')->setTagalysConfig("heartbeat:resyncCron", $time_now);
+        $stores = Mage::getModel('tagalys_core/config')->getTagalysConfig("stores", true);
+        if ($stores != NULL) {
+            foreach ($stores as $i => $store_id) {
+                $resync_required = Mage::getModel('tagalys_core/config')->getTagalysConfig("store:$store_id:resync_required");
+                if ($resync_required == '1') {
+                    $this->triggerFeedForStore($store_id);
+                    Mage::getModel('tagalys_core/config')->setTagalysConfig("store:$store_id:resync_required", '0');
+                }
+            }
+        }
     }
 
     // create / update / delete from admin
