@@ -1,23 +1,23 @@
-<?php
-    $analyticsEvent = false;
-    try {
-        $analyticsEvent = Mage::getModel('core/cookie')->get('__ta_event');
-        if ($analyticsEvent == false) {
-            $analyticsEvent = Mage::registry('tagalys_analytics_event');
-        }
-        if ($analyticsEvent != false) {
-            $analyticsEvent = json_decode($analyticsEvent, true);
-            Mage::getModel('core/cookie')->delete('__ta_event');
-        }
-    } catch (Exception $e) {
-        // don't log this as it might happen too often
-    }
-?>
-<?php if ($analyticsEvent != false): ?>
-    <script>
+<?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('search') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('mpages')): ?>
+    <?php
+        $analyticsEvent = false;
         try {
-            (function( $ ) {
-                $(function() {
+            $analyticsEvent = Mage::getModel('core/cookie')->get('__ta_event');
+            if ($analyticsEvent == false) {
+                $analyticsEvent = Mage::registry('tagalys_analytics_event');
+            }
+            if ($analyticsEvent != false) {
+                $analyticsEvent = json_decode($analyticsEvent, true);
+                Mage::getModel('core/cookie')->delete('__ta_event');
+            }
+        } catch (Exception $e) {
+            // don't log this as it might happen too often
+        }
+    ?>
+    <?php if ($analyticsEvent != false): ?>
+        <script>
+            try {
+                (function( $ ) {
                     $.ajax({
                         url: "<?php echo Mage::getUrl('tanalytics/index/details/'); ?>",
                         data: { event_json: '<?php echo json_encode($analyticsEvent) ?>' },
@@ -34,11 +34,11 @@
                             }
                         }
                     });
-                });
-            }( jQuery ));
-        }
-        catch(err) {
-            
-        }
-    </script>
+                }( jQuery ));
+            }
+            catch(err) {
+                
+            }
+        </script>
+    <?php endif; ?>
 <?php endif; ?>
