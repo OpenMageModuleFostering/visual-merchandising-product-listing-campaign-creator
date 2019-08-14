@@ -1,7 +1,7 @@
 
 <?php 
 if(Mage::helper('tagalys_core')->getTagalysConfig('setup_complete') && Mage::helper('tagalys_core')->getTagalysConfig('search_complete') && Mage::helper('tagalys_core')->getTagalysConfig('is_tsearchsuggestion_active')): ?>
-<script type="text/javascript" src="https://s3-ap-southeast-1.amazonaws.com/tagalys-assets/ss-v2.js"></script>
+<script type="text/javascript" src="https://s3-ap-southeast-1.amazonaws.com/tagalys-assets/ss-v4.js"></script>
 <script type="text/javascript">
 
 <?php
@@ -88,6 +88,11 @@ if( Mage::helper('core')->isModuleEnabled('Tagalys_Tsearch') ){
       return popular_searches.length > 0 ? JSON.parse(popular_searches) : JSON.parse('[]');
     };
 
+    $.fn.tagalys_public_api = {
+      server: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("api_server") ?>',
+      identification: {"client_code":'<?php echo Mage::helper("tagalys_core")->getTagalysConfig("client_code") ?>',"api_key":'<?php echo Mage::helper("tagalys_core")->getTagalysConfig("public_api_key") ?>',"store_id":'<?php echo Mage::app()->getStore()->getStoreId() ?>'}
+    }
+
     $('<?php echo Mage::helper("tagalys_core")->getTagalysConfig("search_box") ?>').tagalys_search_suggestions({
      align_to_parent: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("search_box_container") ?>',
      api: {
@@ -103,6 +108,12 @@ if( Mage::helper('core')->isModuleEnabled('Tagalys_Tsearch') ){
       label: "<?php echo $currency[0]['label']; ?>",
       exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
       fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
+    },
+    callbacks: {
+        click_search: function($a) {
+          $.fn.tagalys_analytics.track_asynchronously('search', $a.data('tagalys-search'), 'tagalys-search-suggestions');
+          return true;
+        }
     }
   });
 

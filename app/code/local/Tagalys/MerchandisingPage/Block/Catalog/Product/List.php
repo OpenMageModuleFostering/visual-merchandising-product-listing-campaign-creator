@@ -1,21 +1,27 @@
 <?php
 class Tagalys_MerchandisingPage_Block_Catalog_Product_List extends Mage_Catalog_Block_Product_List
 {
+	public function getLoadedProductCollection()
+	{
+		var_dump("asggag");
+	    return $this->_getProductCollection();
+	}
 	
 	protected function _getProductCollection()
     {
 	 
     	 $tagalys = Mage::helper("merchandisingPage")->getTagalysSearchData();
-    	 
+    
 	    if($tagalys == false) {
+
 	   
 	    	return parent::_getProductCollection();
 
 	    } else {
 
        		$searchResult = $tagalys;
-
-       		if(empty($searchResult)) {
+          // die(var_dump(empty($searchResult));
+       		if(empty($searchResult) || empty($searchResult["results"])) {
        			return parent::_getProductCollection();
        		}
 

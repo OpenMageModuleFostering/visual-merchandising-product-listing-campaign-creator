@@ -1,92 +1,95 @@
 <?php
 class Tagalys_MerchandisingPage_Block_Catalog_Product_List_Toolbar extends Mage_Catalog_Block_Product_List_Toolbar {
+    
     public function getAvailableOrders()
-    {
-      // die('bsdf');
-        // $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-      
-      $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-
-        if($tagalys == false) {
-
-            return $this->_availableOrder;
-        
-        } else {
-            
-            $data = $tagalys;
-            
-            $sort_options =  array();
-            
-            foreach ($data['sort_options'] as $key => $value) {
-                $sort_options[$value['id']] = $value['label'];
-            }
-
-            $this->_availableOrder = $sort_options;
-     
-            return $this->_availableOrder;
-        }
-    }
-
-   public function getOrderDirection($sort_id) {
-    // die('test');
-    $sort_direction =  array();
-
-    $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-
-     $data = $tagalys;
-         
-    foreach ($data['sort_options'] as $key => $value) {
-      if (intval($value['id']) === intval($sort_id)) {
-        if(sizeof($value['orders']) === 0) {
-          $sort_direction[] = null;
-        }
-             
-        elseif (sizeof($value['orders']) === 1)  {
-           $sort_direction[] = $value['orders'][0]["order"];
-        }
-           
-        elseif (sizeof($value['orders']) > 1) {
-            foreach ($value['orders'] as $key => $value) {
-               $sort_direction[] = $value["order"];
-            }
-        }      
-      }
-    }
-
-     return $sort_direction;
-  }
-
-  public function setDefaultOrder($field)
   {
-    $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-
-    if($tagalys == false) {
-        
-        if (isset($this->_availableOrder[$field])) {
-            $this->_orderField = $field;
-        }
-
-        return $this;    
+    $tagalysData = Mage::helper("merchandisingpage")->getTagalysSearchData();
+    if($tagalysData == false) {
+      return $this->_availableOrder;
     } else {
-
-        $data = $tagalys; 
-
-        if (isset($this->_availableOrder[$data['sort']])) {
-            $this->_orderField = $field;
-         }
-
-        return $this;            
-    }   
-  }
-
-  public function isOrderCurrent($key)
-    {
-      // $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-      $tagalys = Mage::helper("merchandisingpage")->getTagalysSearchData();
-      $order = $tagalys['sort'];
-      if (intval($order) == intval($key)) {
-        return true;
+      $sort_options =  array();
+      foreach ($tagalysData['sort_options'] as $key => $sort) {
+        foreach ($sort as $key => $value) {
+          foreach ($value as $field => $val) {
+            $sort_options[$val["id"]] = $val['label'];
+          }
+        }
       }
-      return false;
-    }
+      $sort_options =  array();
+      foreach ($tagalysData['sort_options'] as $key => $sort) {
+       $sort_options[$sort["id"]]  =$sort["label"];
+     }
+     $this->_availableOrder = $sort_options;
+     return $this->_availableOrder;
+   }
+ }
+ public function getLastPageNum() {
+ 
+  $this->_pageSize = $this->getLimit();
+  $tagalysData = Mage::helper("merchandisingpage")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getLastPageNum();
+  } else {
+
+   $collectionSize = (int) $tagalysData["total"];
+
+   if (0 === $collectionSize) {
+    return 1;
+  }
+  elseif($this->_pageSize) {
+    return ceil($collectionSize/$this->_pageSize);
+  }
+  else{
+    return 1;
+  }
+}
+}
+
+public function getTotalNum() {
+  $tagalysData = Mage::helper("merchandisingpage")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getTotalNum();
+  } else {
+    return (int) $tagalysData["total"];
+  }
+}
+
+public function getLimit() {
+  $current_list_mode = Mage::app()->getLayout()->createBlock('catalog/product_list_toolbar')->getCurrentMode();
+      
+      if( $current_list_mode == "grid" || $current_list_mode == "grid-list") {
+        $defaultLimit = Mage::getStoreConfig('catalog/frontend/grid_per_page');
+        
+      } else if($current_list_mode == "list" || $current_list_mode == "list-grid") {
+        $defaultLimit = Mage::getStoreConfig('catalog/frontend/list_per_page');
+      }
+       $session_limit =  $this->getRequest()->getParam($this->getLimitVarName(), $this->getDefaultPerPageValue());
+
+      !empty($session_limit) ? $session_limit : $defaultLimit;
+      return !empty($session_limit) ? $session_limit : $defaultLimit;
+}
+
+public function getFirstNum()
+{
+  $tagalysData = Mage::helper("merchandisingpage")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getFirstNum();
+  } else {
+    $this->_pageSize = $this->getLimit();
+    return $this->_pageSize*($this->getCurrentPage()-1)+1;
+  }
+}
+public function getLastNum()
+{
+  $tagalysData = Mage::helper("merchandisingpage")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getLastNum();
+  } else {
+    $this->_pageSize = $this->getLimit();
+    $blind_last_num = $this->getFirstNum() + $this->_pageSize - 1;
+    $actual_last_num = min($blind_last_num, $tagalysData["total"]);
+    return $actual_last_num;
+  }
+}
+
 }

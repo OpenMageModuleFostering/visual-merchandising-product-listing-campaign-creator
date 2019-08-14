@@ -143,6 +143,9 @@ class Tagalys_Tsearch_Model_Client_Connector extends Mage_Core_Model_Abstract {
 			$url = $this->getUrl('search');
 
 			$payloadData = $this->createPayload($payload, $action = 'search');
+			//var_dump($payloadData);
+			//die();
+
 			$this->_search = $this->_payloadAgent($url, ($payloadData));
 			// $this->_search = json_decode(file_get_contents('response-format.json'),true);
 			return $this->_search;

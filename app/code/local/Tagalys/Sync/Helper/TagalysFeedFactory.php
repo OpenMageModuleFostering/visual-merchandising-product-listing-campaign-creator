@@ -40,36 +40,47 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
     $total = $collection->count();
     return $total;
   }
-  public function createProductFeed($storeId,$dump) {
-    $products = array();
-    $total = $this->getTotal($storeId,$dump);
-    $type =  $dump ? "dump" : "updates";
-    $status = $this->isProductFeedProceesed($type);
-    $exist_feed = $this->getFeedFile($storeId,$type);
-    if(isset($exist_feed)) {
-      return false;
-    }
-    if(!$status) {
-      return array( "status" => false,"message"=> "Already some feed creation process in queue. Please try again later.");
-    }
-    $this->checkAndCreateFolder($this->default_location);
-    if(isset($total)) {
-      $name = md5(microtime());
-      if($dump == true){
-        $name = 'dump'.'-'.$name;
-        $file = $this->file_path . $name . '-'.$storeId.'-'.$total.'.jsonl';       
-      } else {
-        $name = 'updates'.'-'.$name;
-        $file = $this->file_path . $name . '-'.$storeId.'-'.$total.'.jsonl';    
-      }
-      $this->setAllowCreateFolders(true);
-      $this->open(array('path' => $this->file_path));
-      $this->streamOpen($file, 'w+');
-      $this->streamClose();
-    }
-    return array("status" => true,
-                 "message" => $name.'.jsonl');
+
+  public function getDomain() {
+   $url = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB); 
+   $format_url = explode("://", $url);
+   $format_domain = str_replace(".", "_", $format_url[1]);
+   $temp = explode("/", $format_domain);
+   $domain = $temp[0];
+
+   return $domain;
+ }
+ public function createProductFeed($storeId,$dump) {
+  $domain =  $this->getDomain();
+  $products = array();
+  $total = $this->getTotal($storeId,$dump);
+  $type =  $dump ? "dump" : "updates";
+  $status = $this->isProductFeedProceesed($type);
+  $exist_feed = $this->getFeedFile($storeId,$type);
+  if(isset($exist_feed)) {
+    return false;
   }
+  if(!$status) {
+    return array( "status" => false,"message"=> "Already some feed creation process in queue. Please try again later.");
+  }
+  $this->checkAndCreateFolder($this->default_location);
+  if(isset($total)) {
+    $name = md5(microtime());
+    if($dump == true){
+      $name = 'dump'.'-'.$name;
+      $file = $this->file_path . $domain . '-'. $name . '-'.$storeId.'-'.$total.'.jsonl';       
+    } else {
+      $name = 'updates'.'-'.$name;
+      $file = $this->file_path . $domain . '-'. $name . '-'.$storeId.'-'.$total.'.jsonl';    
+    }
+    $this->setAllowCreateFolders(true);
+    $this->open(array('path' => $this->file_path));
+    $this->streamOpen($file, 'w+');
+    $this->streamClose();
+  }
+  return array("status" => true,
+               "message" => $name.'.jsonl');
+}
   /**
    * Retuns finished product feed details
    *
@@ -82,7 +93,7 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
       if (!is_dir($this->file_path . $value) ) {
         if(!preg_match("/^\./", $value)) {
           $file_status = explode( '-', $value );
-          if(count($file_status) == 2) {
+          if(count($file_status) == 3) {
             array_push($finishd_files, $value);
           } 
         }
@@ -114,7 +125,7 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
   } else {
     $files = $feed;
     $file_status = explode( '-', $files );
-    if(count($file_status) == 2) {
+    if(count($file_status) == 3) {
       return true;
     }
   }
@@ -122,13 +133,14 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
     if (!is_dir($this->file_path . $value) ) {
      if(!preg_match("/^\./", $value)) {
       $file_status = explode( '-', $value );
-      if(count($file_status) > 3) {
-        $meta_temp = explode( '.', $file_status[3]);
+      if(count($file_status) > 4) {
+        $meta_temp = explode( '.', $file_status[4]);
               $total = $meta_temp[0]; //explode('.', $file_status[1]);
               $file_meta->name = $value;
-              $file_meta->store = $file_status[2];
-              $file_meta->uniq_name =$file_status[1];
-              $file_meta->type = $file_status[0];
+              $file_meta->store = $file_status[3];
+              $file_meta->uniq_name =$file_status[2];
+              $file_meta->type = $file_status[1];
+              $file_meta->domain = $file_status[0];
               $file_meta->total = (int) $total;
               if(preg_match("/^[0-9]+$/",$total)) {
                $file_meta->total = (int) $total;
@@ -149,7 +161,8 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
    */
   public function updateProductFeed() {
     try {
-
+      $current_domain =  $this->getDomain();
+              
       $pages = 0;
       $page_done = 0;
       $products_done = 0;
@@ -160,17 +173,22 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
         return false;
       }
       $helper = Mage::helper("sync/service");
+      $file_domain = $file_meta->domain;
+      
+      if ($current_domain != $file_domain) {
+        return false;
+      }
       if($file_meta->type == "dump") {
         $total = $this->getTotal($file_meta->store, true);
-
 
       } else {
         $total =  Mage::getModel('sync/queue')->getCollection()->count();
       }
       $pages = $total/self::PAGE_LIMIT;
       $feed_file = $this->getFeedFile($file_meta->store, "dump");
+
       if (!empty($file_meta->type)) {
-        $fp = file((String)$this->file_path.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
+        $fp = file((String)$this->file_path.$file_meta->domain.'-'.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
         $line_count = count($fp);
         $page_no = $pages - (($total - $line_count)/self::PAGE_LIMIT);
         if (is_float($page_no)) {
@@ -180,12 +198,13 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
 
       if($file_meta->status != "processing" && $file_meta->type == "dump" ) {
 
-        rename($this->file_path  . $file_meta->name, $this->file_path . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl');
-        $file = $this->file_path . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
+        rename($this->file_path . $file_meta->name, $this->file_path . $file_meta->domain.'-'.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl');
+
+        $file = $this->file_path.$file_meta->domain.'-' . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
 
       } else {
         if ($file_meta->type == "dump")
-          $file = $this->file_path . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
+          $file = $this->file_path .$file_meta->domain.'-'. $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
         if(file_exists($file)){
 
           if($file_meta->type == "dump") {
@@ -216,10 +235,10 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
       }
       if($page_done == $pages && $file_meta->type == "dump") {
 
-       $fp = file((String)$this->file_path.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
+       $fp = file((String)$this->file_path.$file_meta->domain.'-'.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
        $line_count = count($fp);
-       $finished_file_name = $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl';
-       rename($file, $this->file_path . $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl');
+       $finished_file_name = $file_meta->domain.'-'.$file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl';
+       rename($file, $this->file_path.$file_meta->domain.'-' . $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl');
 
        if($line_count > 0) {
         $this->notify_tagalys($finished_file_name, $line_count, $file_meta->store, $file_meta->type);
@@ -238,10 +257,10 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
       $products_done = 0;
       $file_meta = Mage::helper("sync/tagalysFeedFactory")->getProductFeedMetaDetails(array($key =>$value));
       if($file_meta->status != "processing" ) {
-        rename(Mage::getBaseDir('media'). DS .'tagalys'. DS  . $file_meta->name, Mage::getBaseDir('media'). DS .'tagalys'. DS . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl');
-        $file = Mage::getBaseDir('media'). DS .'tagalys'. DS . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
+        rename(Mage::getBaseDir('media'). DS .'tagalys'. DS  . $file_meta->name, Mage::getBaseDir('media'). DS .'tagalys'. DS .$file_meta->domain.'-'. $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl');
+        $file = Mage::getBaseDir('media'). DS .'tagalys'. DS .$file_meta->domain.'-'. $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
       } else {
-        $file = Mage::getBaseDir('media'). DS .'tagalys'. DS . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
+        $file = Mage::getBaseDir('media'). DS .'tagalys'. DS .$file_meta->domain.'-' . $file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl';
       }
 
       $this->open(array('path' => Mage::getBaseDir('media'). DS .'tagalys'. DS));
@@ -254,10 +273,10 @@ class Tagalys_Sync_Helper_TagalysFeedFactory extends Varien_Io_File {
       }
       $this->streamClose();
       if($products_done == $total) {
-        $fp = file((String)$this->file_path.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
+        $fp = file((String)$this->file_path.$file_meta->domain.'-'.$file_meta->type.'-'.$file_meta->uniq_name.'-'.$file_meta->store.'-processing.jsonl', FILE_SKIP_EMPTY_LINES);
         $line_count = count($fp);
-        $finished_file_name = $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl';
-        rename($file, $this->file_path . $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl');
+        $finished_file_name = $file_meta->domain.'-'.$file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl';
+        rename($file, $this->file_path .$file_meta->domain.'-'. $file_meta->type.'-'. $file_meta->uniq_name.'-'.$file_meta->store.'.jsonl');
 
         if($line_count > 0) {
           $this->notify_tagalys($finished_file_name, $line_count, $file_meta->store, $file_meta->type);
@@ -282,8 +301,20 @@ public function updateStatusFile($storeId, $products_count) {
 public function notify_tagalys($filename, $count, $storeId, $type) {
   $service = Mage::getSingleton("sync/client");
   $params["store_id"] = $storeId;
-    $tagalys_feed_response = $service->notify_tagalys(array("link" => Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA)."tagalys/".$filename, "updates_count" => $count, "store" => $storeId,  "callback_url" => Mage::getUrl('tagalys/feed/indexStatus/')), $type);//to-do
-    $this->setInitSyncDone($storeId);
+
+  $baseUrl = "";
+  $webUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
+  $mediaUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
+
+  if (strpos($mediaUrl, $webUrl) === false) {
+    $baseUrl = $webUrl . 'media/';
+  } else {
+    $baseUrl = $mediaUrl;
+  }
+
+  $tagalys_feed_response = $service->notify_tagalys(array("link" => $baseUrl."tagalys/".$filename, "updates_count" => $count, "store" => $storeId,  "callback_url" => Mage::getUrl('tagalys/feed/indexStatus/')), $type); //to-do
+
+  $this->setInitSyncDone($storeId);
     Mage::dispatchEvent('tagalys_event'); //to-check to-do blank
     return true;
   }
@@ -360,7 +391,7 @@ public function notify_tagalys($filename, $count, $storeId, $type) {
         if (!is_dir($this->file_path . $value) ) {
           if(!preg_match("/^\./", $value)) {
             $file_status = explode( '-', $value );
-            if($file_status[0] == "dump" || $file_status[0] == "updates")
+            if($file_status[1] == "dump" || $file_status[1] == "updates")
               $feed_files[] = $value;
           }
         }
@@ -370,7 +401,7 @@ public function notify_tagalys($filename, $count, $storeId, $type) {
         if (!is_dir($this->file_path . $value) ) {
           if(!preg_match("/^\./", $value)) {
             $file_status = explode( '-', $value );
-            if($file_status[0] == $type ) {
+            if($file_status[1] == $type ) {
               $feed_files[] = $value;
             }
           }
@@ -392,7 +423,7 @@ public function notify_tagalys($filename, $count, $storeId, $type) {
       if (!is_dir($this->file_path . $value) ) {
         if(!preg_match("/^\./", $value)) {
           $file_status = explode( '-', $value );
-          if(count($file_status) > 3) {
+          if(count($file_status) > 4) {
             $feed_count++;
           } 
         }
@@ -412,7 +443,7 @@ public function notify_tagalys($filename, $count, $storeId, $type) {
     foreach ($files as $key => $value) {
       if (!is_dir($this->file_path . $value) ) {
         $file_status = explode( '-', $value );
-        if($file_status[0] == $type && (int)$file_status[2] == $storeId) {
+        if($file_status[1] == $type && (int)$file_status[3] == $storeId) {
           return $value;
         }
       }

@@ -47,7 +47,7 @@ class Tagalys_MerchandisingPage_Block_Catalog_Layer_View extends Mage_Catalog_Bl
      */
     protected function _prepareLayout()
     {
-        // var_dump("_prepareLayout");
+
         if (Mage::helper('merchandisingpage')->isTagalysActive()) {
             $stateBlock = $this->getLayout()->createBlock($this->_stateBlockName)
             ->setLayer($this->getLayer());
@@ -62,17 +62,11 @@ class Tagalys_MerchandisingPage_Block_Catalog_Layer_View extends Mage_Catalog_Bl
                 
                 if ($attribute->getAttributeCode() == 'price') {
                     $filterBlockName = $this->_priceFilterBlockName;
-                // } elseif ($attribute->getBackendType() == 'decimal') {
-                //     $filterBlockName = $this->_decimalFilterBlockName;
-                // } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
-                //     $filterBlockName = $this->_booleanFilterBlockName;
+
                 } else {
                     $filterBlockName = $this->_attributeFilterBlockName;
                 }
-                // var_dump("<br>");
-                // var_dump($attribute->getAttributeCode());
-                // var_dump($filterBlockName);
-                // var_dump("<br>");
+     
                 if(isset($filterBlockName)) {
                      $filters[$attribute->getAttributeCode() . '_filter'] = $this->getLayout()->createBlock($filterBlockName)
                 ->setLayer($this->getLayer())

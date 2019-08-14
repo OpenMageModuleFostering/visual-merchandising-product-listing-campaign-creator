@@ -35,17 +35,17 @@ implements Mage_Adminhtml_Block_Widget_Tab_Interface {
       ));
 
  
-    // $fieldset->addField('merchandising_page_template', 'textarea', array(
-    //   'label'     => $this->__('Enter Template Config'),
-    //   'required'  => false,
-    //   'name'      => 'merchandising_page_template',
-    //   'value'  => $this->_helper->getTagalysConfig("merchandising_page_template"),
-    //   'disabled' => false,
-    //   // 'readonly' => false,
-    //   'style'   => "width:100%",
-    //   'after_element_html' => '<small>  </small>',
-    //   'tabindex' => 1
-    //   ));
+    $fieldset->addField('merchandising_page_template', 'textarea', array(
+      'label'     => $this->__('Enter Template Config'),
+      'required'  => false,
+      'name'      => 'merchandising_page_template',
+      'value'  => $this->_helper->getTagalysConfig("merchandising_page_template"),
+      'disabled' => false,
+      // 'readonly' => false,
+      'style'   => "width:100%",
+      'after_element_html' => '<small>  </small>',
+      'tabindex' => 1
+      ));
 
    $fieldset->addField('submit', 'submit', array(
       'name' => 'submit_merchandising_page_config',

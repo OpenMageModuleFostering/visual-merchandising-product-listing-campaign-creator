@@ -114,7 +114,7 @@ class Tagalys_Sync_Model_ProductDetails extends Mage_Core_Model_Abstract {
 					} 
 					$values['label'] = $attriute_option_value;
 					$values['id'] = $attribute_options_id;
-					if(!is_null($attribute_options_id) && $values['label'] != "N/A"){
+					if($values && !is_null($attribute_options_id) && $values['label'] != "N/A"){
 						$attributeObj[] = array("tag_set" => array("id" => $attribute->getAttributeCode(), "label" => $attribute->getFrontend()->getLabel($product) ),"items" => array($values));
 					}
 				}

@@ -29,13 +29,23 @@
           <layer>Tagalys_MerchandisingPage_Block_Catalog_Layer_View</layer>
         </rewrite>
       </catalog>
-       
+
+       <page>
+		<rewrite>
+			<html_pager>Tagalys_MerchandisingPage_Block_Page_Html_Pager</html_pager>
+		</rewrite>
+	</page>
       <catalog>
         <rewrite>
           <product_list_toolbar>Tagalys_MerchandisingPage_Block_Catalog_Product_List_Toolbar</product_list_toolbar>
         </rewrite>
       </catalog>
-      <!-- catalogsearch result rewrite -->
+      
+      <catalogsearch>
+        <rewrite>
+          <layer>Tagalys_MerchandisingPage_Block_Catalogsearch_Layer_View</layer>
+        </rewrite>
+      </catalogsearch>
      </blocks>
      <models>
         <merchandisingpage>

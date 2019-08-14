@@ -99,7 +99,6 @@
      */
 
     protected function _getItemsData() {
-      // die("tagalys_merchandisingpage");
       $attribute = $this->getAttributeModel();
       $this->_requestVar = $attribute->getAttributeCode();
     

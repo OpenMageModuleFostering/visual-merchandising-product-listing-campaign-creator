@@ -69,7 +69,6 @@ class Tagalys_Tsearch_Model_Catalog_Layer_Filter_Price extends MiddleManModelPri
      */
     protected function _getItemsData()
     {
-
      if (Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_CALCULATION) == self::RANGE_CALCULATION_IMPROVED) {
        return $this->_getCalculatedItemsData();}
        if ($this->getInterval()) {

@@ -37,6 +37,11 @@
 					<product_list_toolbar>Tagalys_Tsearch_Block_Catalog_Product_List_Toolbar</product_list_toolbar>
 				</rewrite>
 			</catalog>
+			<page>
+				<rewrite>
+					<html_pager>Tagalys_Tsearch_Block_Page_Html_Pager</html_pager>
+				</rewrite>
+			</page>
 		<!-- 	<catalogsearch>
 				<rewrite>
 					<result>Tagalys_Tsearch_Block_Catalogsearch_Result</result>

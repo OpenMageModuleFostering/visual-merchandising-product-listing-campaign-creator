@@ -23,25 +23,22 @@ class Tagalys_Tsearch_Block_Catalog_Product_List_Toolbar extends Mage_Catalog_Bl
    }
  }
  public function getLastPageNum() {
- 
   $this->_pageSize = $this->getLimit();
   $tagalysData = Mage::helper("tsearch")->getTagalysSearchData();
   if($tagalysData == false) {
     return parent::getLastPageNum();
   } else {
-
-   $collectionSize = (int) $tagalysData["total"];
-
-   if (0 === $collectionSize) {
-    return 1;
+    $collectionSize = (int) $tagalysData["total"];
+    if (0 === $collectionSize) {
+      return 1;
+    }
+    elseif($this->_pageSize) {
+      return ceil($collectionSize/$this->_pageSize);
+    }
+    else{
+      return 1;
+    }
   }
-  elseif($this->_pageSize) {
-    return ceil($collectionSize/$this->_pageSize);
-  }
-  else{
-    return 1;
-  }
-}
 }
 
 public function getTotalNum() {
@@ -66,6 +63,29 @@ public function getLimit() {
 
       !empty($session_limit) ? $session_limit : $defaultLimit;
       return !empty($session_limit) ? $session_limit : $defaultLimit;
+}
+
+public function getFirstNum()
+{
+  $tagalysData = Mage::helper("tsearch")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getFirstNum();
+  } else {
+    $this->_pageSize = $this->getLimit();
+    return $this->_pageSize*($this->getCurrentPage()-1)+1;
+  }
+}
+public function getLastNum()
+{
+  $tagalysData = Mage::helper("tsearch")->getTagalysSearchData();
+  if($tagalysData == false) {
+    return parent::getLastNum();
+  } else {
+    $this->_pageSize = $this->getLimit();
+    $blind_last_num = $this->getFirstNum() + $this->_pageSize - 1;
+    $actual_last_num = min($blind_last_num, $tagalysData["total"]);
+    return $actual_last_num;
+  }
 }
 
 

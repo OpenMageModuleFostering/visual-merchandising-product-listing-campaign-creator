@@ -15,7 +15,7 @@
              <template>page/2columns-left.phtml</template>
       </action>
       <block type="page/html_breadcrumbs" as="breadcrumbs" name="mp_template" template="tagalys_merchandising_page/mp_template.phtml"></block>
-      <!-- block type="core/template" name="mp_template" template="tagalys_merchandising_page/mp_template.phtml"></block> -->
+      <block type="core/template" name="mp_template" template="tagalys_merchandising_page/mp_template.phtml"></block>
     </reference>
 
     <!-- <update handle="catalog_category_layered"/>

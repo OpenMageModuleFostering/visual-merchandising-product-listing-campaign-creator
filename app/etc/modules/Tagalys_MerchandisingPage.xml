@@ -6,7 +6,7 @@
       <codePool>local</codePool>
       <version>0.1.0</version>
       <depends>
-        <!-- <Mage_Catalog /> -->
+
         <Tagalys_Tsearch />
       </depends>
     </Tagalys_MerchandisingPage>

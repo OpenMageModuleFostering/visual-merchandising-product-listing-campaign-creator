@@ -246,9 +246,18 @@ class Tagalys_Sync_Helper_Service extends Mage_Core_Helper_Abstract {
     $defaultCurrencies = $currencyModel->getConfigBaseCurrencies();
     $rates=$currencyModel->getCurrencyRates($defaultCurrencies, $currencies); //rates of each currency
 
+    if (empty($rates[$baseCurrencyCode])) {
+      $rates[$baseCurrencyCode] = array($baseCurrencyCode => '1.0000');
+    }
+
     foreach($rates[$baseCurrencyCode] as $key=>$value  ) {
       $default = $baseCurrencyCode == $key ? true : false;
       $label = Mage::app()->getLocale()->currency( $key )->getSymbol();
+      if (!isset($label)) {
+        if($baseCurrencyCode == "INR") {
+          $label = '₹';
+        }
+      }
       $currency_rate[] = array("id" => $key, "label" => $label, "fractional_digits" => 2 , "rounding_mode" => "round", "exchange_rate" => (float)$value, "default" => $default); //getFinalPrice
     }
 

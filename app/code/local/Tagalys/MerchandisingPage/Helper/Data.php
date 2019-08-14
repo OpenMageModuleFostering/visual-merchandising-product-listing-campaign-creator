@@ -14,15 +14,9 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
       $request = $q->getParams();
       $request['filters'] = true;
       $request['q'] = $request['product'];
-        // $request['aadi'] = "aaaaa";
+  
       $payload = $request; 
       $entity = 'catalog_product';
-
-
-      //if (!isset($request['product'])){
-      //  $this->_forward('noRoute');
-      //  return;
-      //}
 
       $current_list_mode = Mage::app()->getLayout()->createBlock('catalog/product_list_toolbar')->setChild('product_list_toolbar_pager', $pager)->getCurrentMode();
   
@@ -35,11 +29,16 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
 
       $payload['filters'] = true;
 
-      $session_limit = Mage::getSingleton('catalog/session')->getLimitPage();
+      $session_limit = $request['limit']; //Mage::getSingleton('catalog/session')->getLimitPage();
 
-      $payload['per_page'] = !empty($session_limit) ? $session_limit : $defaultLimit;
+      $payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit);
       $payload['page'] = (!empty($request['p'])) ? $request['p'] : 1;
-
+      // $payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) *  ($payload['page'] + 1);
+      //  if($payload['page'] == 1) {
+      //   $payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) * 2;
+      //  } else {
+      // $payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) ;
+      //  }
       foreach ($request as $key => $value) {
         
         $code = $key;
@@ -51,6 +50,7 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         
       }
+
       if(isset($request["cat"])) {
         $filters["__categories"] = array($request["cat"]);
         // $payload["f"] = $category;
@@ -63,8 +63,8 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
       }
 
       //$payload['filters'] = true;
-      $payload['request'] = array("results","total","filters","sort_options");
-    
+      $payload['request'] = array("variables","url_component","results","sort_options","filters","total");
+      $payload["store"] = Mage::app()->getStore()->getStoreId();
       
       //by aaditya 
      if(isset($request['order'])) {
@@ -91,6 +91,8 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
    
       unset($payload['limit']);
       unset($payload['product']);
+      unset($payload['dir']);
+      unset($payload['order']);
       
 
       return $service->merchandisingPage($payload);
@@ -98,12 +100,16 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
 
 
   public function getTagalysSearchData() {
-        // $service = Mage::getSingleton("Tagalys_MerchandisingPage_Model_Client");
-   
-    $service = Mage::getSingleton("merchandisingpage/client");
+    $controllerModule = Mage::app()->getRequest()->getControllerModule();
+    if($controllerModule == 'Tagalys_MerchandisingPage') {
+      $service = Mage::getSingleton("merchandisingpage/client");
+    } else {
+      $service = Mage::getSingleton("tsearch/client_connector");
+    }
     if($this->isTagalysActive()) {
         $searchResult = $service->getSearchResult();
-        if ($searchResult == null) {
+	// die(var_dump($searchResult));
+        if ($searchResult == null || ( isset($searchResult["status"]) && $searchResult["status"] != "OK")) {
             return false;
         } else {
 
@@ -112,8 +118,7 @@ class Tagalys_MerchandisingPage_Helper_Data extends Mage_Core_Helper_Abstract {
     } else {
         return false;
     }
-    // die('getTagalysSearchData');
-    // return $service->merchandisingPage(array());
+
   }
 
   public function isTagalysActive() {

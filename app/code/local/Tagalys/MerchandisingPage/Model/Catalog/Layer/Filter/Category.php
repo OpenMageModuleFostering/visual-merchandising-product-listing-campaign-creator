@@ -51,7 +51,6 @@ class Tagalys_MerchandisingPage_Model_Catalog_Layer_Filter_Category extends Mage
 
     protected function _getItemsData()
     {
-        // die('category');
         $key = $this->getLayer()->getStateKey().'_SUBCATEGORIES';
         $data = $this->getLayer()->getAggregator()->getCacheData($key);
         

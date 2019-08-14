@@ -58,14 +58,9 @@ class Tagalys_Tsearch_Model_Engine extends Mage_Core_Model_Abstract  {
 			$payload['q'] = $query;
 			$session_limit = $request["limit"]; //Mage::getSingleton('catalog/session')->getLimitPage();
 
+			$payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit);
+      $payload['page'] = (empty($request["p"]) ? 1 : $request["p"]);
 			
-			$payload['page'] = (!empty($request['p'])) ? $request['p'] : 1;
-			 if($payload['page'] == 1) {
-			 	$payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) * 2;
-			 } else {
-		 	$payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) ;
-			 }
-			//$payload['per_page'] = (!empty($session_limit) ? $session_limit : $defaultLimit) ;
 
 			//by aaditya 
 			if(isset($request['order'])) {
@@ -87,7 +82,6 @@ class Tagalys_Tsearch_Model_Engine extends Mage_Core_Model_Abstract  {
 			if (isset($payload)) {
 				$payload['user'] = (array("ip" => Mage::helper('core/http')->getRemoteAddr(), "snapshot" => $request["snapshot"] , "visitor_id" => $visitor_id, "user_id" => $user_id , "device_id" => $device_id));
 			}
-		
 			
 			$response = $service->searchProduct($payload);
 		} catch (Exception $e) {

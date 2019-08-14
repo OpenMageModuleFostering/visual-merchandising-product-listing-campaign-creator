@@ -11,15 +11,16 @@ class Tagalys_MerchandisingPage_Model_Client extends Mage_Core_Model_Abstract {
 
 	protected $_error = false;
 
-	protected $timeout = 5;
+	protected $timeout = 20;
 
 	protected $visitor;
 
 
-	public function getSearchResult() {		
+	public function getSearchResult() {
 		if(!empty($this->_search)) {
 			return $this->_search;
 		} else {
+			// die("im here");
 			$this->_search = Mage::helper('merchandisingpage')->getMerchandisingData();
 		}
 		return $this->_search;
@@ -38,6 +39,7 @@ class Tagalys_MerchandisingPage_Model_Client extends Mage_Core_Model_Abstract {
 		$request = array(
 				'client_code' => $this->_client_code,
 				'api_key' => $this->_api_key,
+				"store_id" => $payload["store"]
 				);
 		$payload["identification"] = $request;
 
@@ -50,11 +52,14 @@ class Tagalys_MerchandisingPage_Model_Client extends Mage_Core_Model_Abstract {
 			$url = $this->_api_server.$this->_merchandising_ep;
 			$url = str_replace(":page-name",$payload['q'],$url);
 			$payloadData = $this->createPayload($payload);
-	
-			$this->_payloadAgent($url,json_encode($payloadData)); //to be enabled
-			
-			$this->_search = json_decode(file_get_contents('mpage.json'),true);
-				
+			// die(var_dump($payloadData));
+			$this->_search = $this->_payloadAgent($url,($payloadData)); //to be enabled
+			// var_dump($this->_search); die();
+			// $this->_search = json_decode(file_get_contents('mpage.json'),true);
+			// $this->_search = array('status' => 'Not found');
+			// $this->_search = array('status' => 'Internal server error');
+			// Mage::log(">>>",null,'mrequest.log', true);
+			// var_dump($this->_search);
 			return $this->_search;
 		} catch (Exception $e) {
 			
@@ -98,7 +103,6 @@ class Tagalys_MerchandisingPage_Model_Client extends Mage_Core_Model_Abstract {
 	}
 
 	private function _payloadAgent($url, $payload) {
-
 		$agent = $this->_getAgent($url);
 		curl_setopt( $agent, CURLOPT_POSTFIELDS, $payload );
 		curl_setopt($agent, CURLOPT_POST,1);
@@ -108,6 +112,11 @@ class Tagalys_MerchandisingPage_Model_Client extends Mage_Core_Model_Abstract {
 		curl_setopt($agent, CURLOPT_TIMEOUT, $this->timeout);
 		$result = curl_exec($agent);
 		$info = curl_getinfo($agent);
+
+		// 		Mage::log("Tagalys Request info: ".json_encode($info),null,'mrequest.log', true);
+		// Mage::log("Tagalys Request payload: ".($payload),null,'mrequest.log', true);
+		// Mage::log("Tagalys Response: ".($result),null,'mrequest.log', true);
+
 
 		if(curl_errno($agent)) {
 			$this->_error = true;

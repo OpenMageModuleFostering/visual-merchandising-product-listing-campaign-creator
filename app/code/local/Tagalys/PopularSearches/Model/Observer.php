@@ -24,13 +24,13 @@ public function getPopularSearches() {
     $request = array(
                      'client_code' => $this->_client_code,
                      'api_key' => $this->_private_api_key,
-                     'store' => Mage::app()->getStore()->getStoreId()
+                     'store' => Mage::app()->getStore()->getStoreId() ? Mage::app()->getStore()->getStoreId() : 1
                      );
     $payload["identification"] = $request;
     $payloadData = (json_encode($payload));
     $json_data = $this->_payloadAgent($this->_url,($payloadData));
     
-    $fp = fopen( $this->file_path.'tagalys-popularsearches-'.Mage::app()->getStore()->getStoreId().'.json', 'w');
+    $fp = fopen( $this->file_path.'tagalys-popularsearches-'.$request["store"].'.json', 'w');
     if($json_data == null) {
      $json_data = array();
      fwrite($fp, json_encode($json_data));

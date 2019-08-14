@@ -34,7 +34,7 @@ class Tagalys_Sync_FeedController extends Mage_Core_Controller_Front_Action
 
 
       $type_file = explode("-", $feed);
-      if( $type_file[0] == "dump") {
+      if( $type_file[1] == "dump") {
         Mage::helper('tagalys_core')->setTagalysConfig('product_sync_required_'.$output["identification"]["store_id"], 0);
       }
 
