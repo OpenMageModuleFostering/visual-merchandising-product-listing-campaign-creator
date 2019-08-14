@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<config>
+    
+    <modules>
+        <Tagalys_Mpages>
+            <version>0.1.0</version>
+        </Tagalys_Mpages>
+    </modules>
+
+    <frontend>
+        <routers>
+            <tagalys_mpage>
+                <use>standard</use>
+                <args>
+                    <module>Tagalys_Mpages</module>
+                    <frontName>m</frontName>
+                </args>
+            </tagalys_mpage>
+        </routers>
+    </frontend>
+
+    <global>
+        <rewrite>
+            <tagalys_mpage>
+                <from><![CDATA[#^/m/([\w-]+)/?#]]></from>
+                <to><![CDATA[/m/index/index/mpage/$1]]></to>
+                <complete>1</complete>
+            </tagalys_mpage>
+        </rewrite>
+    </global>
+</config>

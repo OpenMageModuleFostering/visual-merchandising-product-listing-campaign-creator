@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Tagalys_SearchSuggestions>
+            <version>0.1.0</version>
+        </Tagalys_SearchSuggestions>
+    </modules>
+    <frontend>
+        <layout>
+            <updates>
+                <tagalys_search_suggestions>
+                    <file>tagalys_search_suggestions.xml</file>
+                </tagalys_search_suggestions>
+            </updates>
+        </layout>
+    </frontend>
+    <global>
+        <models>
+            <tagalys_search_suggestions>
+                <class>Tagalys_SearchSuggestions_Model</class>
+            </tagalys_search_suggestions>
+            <tagalys_search_suggestions>
+                <resourceModel>tagalys_search_suggestions_resource</resourceModel>
+            </tagalys_search_suggestions>
+            <tagalys_search_suggestions_resource>
+                <class>Tagalys_SearchSuggestions_Model_Resource</class>
+            </tagalys_search_suggestions_resource>
+        </models>
+        <helpers>
+            <search_suggestions>
+                <class>Tagalys_SearchSuggestions_Helper</class>
+            </search_suggestions>
+        </helpers>
+    </global>
+    <crontab>
+        <jobs>
+            <tagalys_popular_searches_cron>
+                <schedule>
+                    <cron_expr>*/15 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>tagalys_search_suggestions/observer::cachePopularSearchesCron</model>
+                </run>
+            </tagalys_popular_searches_cron>
+        </jobs>
+    </crontab>
+</config>

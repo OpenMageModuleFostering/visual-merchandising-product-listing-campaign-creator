@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+
+<config>
+
+    <default>
+        <tagalys>
+            <package>
+                <name>Mpages</name>
+                <version>1.1.0</version>
+            </package>
+        </tagalys>
+    </default>
+
+    <modules>
+        <Tagalys_Core>
+            <version>0.3.0</version>
+        </Tagalys_Core>
+    </modules>
+
+    <frontend>
+        <routers>
+            <tagalys>
+                <use>standard</use>
+                <args>
+                    <module>Tagalys_Core</module>
+                    <frontName>tagalys</frontName>
+                </args>
+            </tagalys>
+        </routers>
+    </frontend>
+    
+    <global>
+        <events>
+            <controller_action_postdispatch>
+                <observers>
+                    <controller_action_after>
+                        <class>tagalys_core/observer</class>
+                        <method>tagalys_distpatch</method>
+                    </controller_action_after>
+                </observers>
+            </controller_action_postdispatch>
+            <catalog_product_import_finish_before>
+                <observers>
+                    <tagalys_catalog_product_import_finish_before_handler>
+                        <type>singleton</type>
+                        <class>tagalys_core/observer</class>
+                        <method>productsImported</method>
+                        <args></args>
+                    </tagalys_catalog_product_import_finish_before_handler>
+                </observers>
+            </catalog_product_import_finish_before>
+            <catalog_product_save_after>
+                <observers>
+                    <tagalys_catalog_product_save_after_handler>
+                        <type>singleton</type>
+                        <class>tagalys_core/observer</class>
+                        <method>productChanged</method>
+                        <args></args>
+                    </tagalys_catalog_product_save_after_handler>
+                </observers>
+            </catalog_product_save_after>
+            <catalog_product_delete_before>
+                <observers>
+                    <tagalys_catalog_product_delete_before_handler>
+                        <type>singleton</type>
+                        <class>tagalys_core/observer</class>
+                        <method>productChanged</method>
+                        <args></args>
+                    </tagalys_catalog_product_delete_before_handler>
+                </observers>
+            </catalog_product_delete_before>
+            <catalog_product_delete_commit_after>
+                <observers>
+                    <tagalys_catalog_product_delete_commit_after_handler>
+                        <type>singleton</type>
+                        <class>tagalys_core/observer</class>
+                        <method>productChanged</method>
+                        <args></args>
+                    </tagalys_catalog_product_delete_commit_after_handler>
+                </observers>
+            </catalog_product_delete_commit_after>
+        </events>
+        
+        <models>
+            <tagalys_core>
+                <class>Tagalys_Core_Model</class>
+                <resourceModel>tagalys_core_mysql4</resourceModel>
+            </tagalys_core>
+            <tagalys_core_mysql4>
+                <class>Tagalys_Core_Model_Mysql4</class>
+                <entities>
+                    <config>
+                        <table>tagalys_core_config</table>
+                    </config>
+                    <queue>
+                        <table>tagalys_core_queue</table>
+                    </queue>
+                </entities>
+            </tagalys_core_mysql4>
+        </models>
+
+        <resources>
+            <tagalys_core_setup>
+                <setup>
+                    <module>Tagalys_Core</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </tagalys_core_setup>
+            <tagalys_core_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </tagalys_core_write>
+            <tagalys_core_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </tagalys_core_read>
+        </resources>
+
+        <blocks>
+            <tagalys_core>
+                <class>Tagalys_Core_Block</class>
+            </tagalys_core>
+        </blocks>
+
+        <helpers>
+            <tagalys_core>
+                <class>Tagalys_Core_Helper</class>
+            </tagalys_core>
+        </helpers>
+    </global>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <tagalys_core before="Mage_Adminhtml">Tagalys_Core_Adminhtml</tagalys_core>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <adminhtml>
+        <menu>
+            <Tagalys translate="title" module="core">
+                <title>Tagalys</title>
+                <sort_order>100</sort_order>
+                <children>
+                    <tagalys_core translate="title" module="core">
+                        <sort_order>10</sort_order>
+                        <title>Configuration</title>
+                        <action>adminhtml/tagalys</action>
+                    </tagalys_core>
+                </children>
+            </Tagalys>
+        </menu>
+        <!-- The <layout> updates allow us to define our block layouts in a separate file so are aren't messin' with the Magento layout files.  -->
+        <layout>
+            <updates>
+                <tagalys_core>
+                    <file>tagalys_core.xml</file>
+                </tagalys_core>
+            </updates>
+        </layout>
+        <!-- The <acl> section is for access control. Here we define the pieces where access can be controlled within a role. -->
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <tagalys_core>
+                            <title>Tagalys</title>
+                            <children>
+                                <example translate="title" module="tagalys_core">
+                                    <title>Core</title>
+                                </example>
+                            </children>
+                        </tagalys_core>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
+
+    <crontab>
+        <jobs>
+            <tagalys_sync_cron>
+                <schedule>
+                    <cron_expr>*/5 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>tagalys_core/observer::syncCron</model>
+                </run>
+            </tagalys_sync_cron>
+            <tagalys_resync_cron>
+                <schedule>
+                    <cron_expr>0 1 * * *</cron_expr> 
+                </schedule>
+                <run>
+                    <model>tagalys_core/observer::resyncCron</model>
+                </run>
+            </tagalys_resync_cron>
+        </jobs>
+    </crontab>
+</config>

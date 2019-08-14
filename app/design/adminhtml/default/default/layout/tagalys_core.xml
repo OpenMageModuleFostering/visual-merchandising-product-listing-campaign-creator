@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <adminhtml_tagalys_index>
+        <reference name="head">
+            <action method="addCss"><name>css/tagalys/tagalys-configuration.css</name></action> 
+            <action method="addJs"><script>tagalys-configuration.js</script></action>
+        </reference>
+        <reference name="left">
+            <block type="tagalys_core/adminhtml_tagalys_edit_tabs" name="tagalys_settings_tabs"/>
+        </reference>
+        <reference name="content">
+            <block type="tagalys_core/adminhtml_tagalys_edit" name="tagalys_settings"/>
+        </reference>
+    </adminhtml_tagalys_index>
+</layout>
+

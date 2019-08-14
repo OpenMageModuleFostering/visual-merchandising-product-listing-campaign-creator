@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<config>
+    
+    <modules>
+        <Tagalys_Search>
+            <version>0.1.0</version>
+        </Tagalys_Search>
+    </modules>
+
+    <frontend>
+        <routers>
+            <tagalys_search>
+                <use>standard</use>
+                <args>
+                    <module>Tagalys_Search</module>
+                    <frontName>tsearch</frontName>
+                </args>
+            </tagalys_search>
+        </routers>
+    </frontend>
+</config>

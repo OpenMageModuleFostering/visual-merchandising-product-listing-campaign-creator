@@ -1,11 +1,11 @@
 <?xml version = "1.0"?>
 <config>
   <modules>
-    <Tagalys_SearchSuggestions>
+    <Tagalys_Search>
       <active>true</active>
       <codePool>community</codePool>
       <version>0.1.0</version>
-    </Tagalys_SearchSuggestions>
+    </Tagalys_Search>
   </modules>
 </config>
 
