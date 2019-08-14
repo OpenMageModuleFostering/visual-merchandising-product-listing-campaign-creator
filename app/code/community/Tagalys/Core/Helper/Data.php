@@ -57,7 +57,9 @@ class Tagalys_Core_Helper_Data extends Mage_Core_Helper_Abstract {
             $pathIds = explode('/', $activeCategoryPath);
             // skip the first two levels which are 'Root Catalog' and the Store's root
             $pathIds = array_splice($pathIds, 2);
-            $activeCategoriesTree = $this->mergeIntoCategoriesTree($activeCategoriesTree, $pathIds);
+            if (count($pathIds) > 0) {
+                $activeCategoriesTree = $this->mergeIntoCategoriesTree($activeCategoriesTree, $pathIds);
+            }
         }
         $activeCategoryDetailsTree = $this->detailsFromCategoryTree($activeCategoriesTree);
         return $activeCategoryDetailsTree;

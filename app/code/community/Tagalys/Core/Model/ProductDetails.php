@@ -94,7 +94,9 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
         $attributeObj = array();
         $product->setStoreId($store_id);
         $categories = Mage::helper('tagalys_core')->getProductCategories($productId);
-        $attributeObj[] = array("tag_set" => array("id" => "__categories", "label" => "Categories" ), "items" => ($categories));
+        if (count($categories) > 0) {
+            $attributeObj[] = array("tag_set" => array("id" => "__categories", "label" => "Categories" ), "items" => ($categories));
+        }
 
         $attributes = $product->getAttributes();
         foreach ($attributes as $attribute) {
