@@ -17,40 +17,52 @@ class Tagalys_Core_Helper_Data extends Mage_Core_Helper_Abstract {
         return false;
     }
 
+    public function detailsFromCategoryTree($categoriesTree) {
+        $detailsTree = array();
+        foreach($categoriesTree as $categoryId => $subCategoriesTree) {
+            $category = Mage::getModel('catalog/category')->load($categoryId);
+            $thisCategoryDetails = array("id" => $category->getId() , "label" => $category->getName());
+            $subCategoriesCount = count($subCategoriesTree);
+            if ($subCategoriesCount > 0) {
+                $thisCategoryDetails['items'] = $this->detailsFromCategoryTree($subCategoriesTree);
+            }
+            array_push($detailsTree, $thisCategoryDetails);
+        }
+        return $detailsTree;
+    }
+
+    public function mergeIntoCategoriesTree($categoriesTree, $pathIds) {
+        $pathIdsCount = count($pathIds);
+        if (!array_key_exists($pathIds[0], $categoriesTree)) {
+            $categoriesTree[$pathIds[0]] = array();
+        }
+        if ($pathIdsCount > 1) {
+            $categoriesTree[$pathIds[0]] = $this->mergeIntoCategoriesTree($categoriesTree[$pathIds[0]], array_slice($pathIds, 1));
+        }
+        return $categoriesTree;
+    }
+
     public function getProductCategories($id) {
-        $clist = "";
-        $temp = array();
-        $productObj = Mage::getModel('catalog/product')->load($id);
-        $categoryIds =  $productObj->getCategoryIds();
-        $catId = array();
+        $product = Mage::getModel('catalog/product')->load($id);
+        $categoryIds =  $product->getCategoryIds();
+        $activeCategoryPaths = array();
         foreach ($categoryIds as $key => $value) {
             $category = Mage::getModel('catalog/category')->load($value);
             if ($category->getIsActive()) {
-                $catId[] = $value;
+                $activeCategoryPaths[] = $category->getPath();
             }
         }
-        foreach ($catId as $key => $value) {
-            $m = Mage::getModel('catalog/category')
-            ->load($value)
-            ->getParentCategory();
-            
-            $tempval = explode("1/2",$m->getPath());
-            if (!empty($tempval[1])) {
-                $path = $tempval[1]."/".$value;
-                $category = explode("/", $path);
-                foreach ($category as $category_id) {
-                    $categoryList = array();
-                    if ($category_id != 1 && $category_id != 2) {
-                        $_cat = Mage::getModel('catalog/category')->setStoreId(Mage::app()->getStore()->getId())->load($category_id);
-                        $sub_categories = array("id" => $_cat->getId() , "label" => $_cat->getName());
-                        $categoryList[] = array("id" => $m->getId() , "label" => $m->getName(), "items" => array($sub_categories));
-                    }
-                }
-                $temp[] =  $categoryList[0];
-            }
+        $activeCategoriesTree = array();
+        foreach($activeCategoryPaths as $activeCategoryPath) {
+            $pathIds = explode('/', $activeCategoryPath);
+            // skip the first two levels which are 'Root Catalog' and the Store's root
+            $pathIds = array_splice($pathIds, 2);
+            $activeCategoriesTree = $this->mergeIntoCategoriesTree($activeCategoriesTree, $pathIds);
         }
-        return $temp;
+        $activeCategoryDetailsTree = $this->detailsFromCategoryTree($activeCategoriesTree);
+        return $activeCategoryDetailsTree;
     }
+
     public function getStoresForTagalys() {
         $config_stores = Mage::getModel('tagalys_core/config')->getTagalysConfig("stores");
         
@@ -60,6 +72,7 @@ class Tagalys_Core_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         return array();
     }
+
     public function getAllWebsiteStores() {
         foreach (Mage::app()->getWebsites() as $website) {
             foreach ($website->getGroups() as $group) {

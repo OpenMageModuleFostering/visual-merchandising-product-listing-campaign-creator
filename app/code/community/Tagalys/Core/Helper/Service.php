@@ -10,6 +10,7 @@ class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
         $utc_now = new DateTime("now", new DateTimeZone('UTC'));
         $time_now =  $utc_now->format(DateTime::ATOM);
         $attr_data = array();
+        Mage::app()->setCurrentStore($store_id);
         $attributes = $details_model->getProductAttributes($product_id, $store_id, array_keys((array) $product_data));
         $product_data = $details_model->getProductFields($product_id, $store_id);
         $product_data->synced_at = $time_now;
