@@ -35,6 +35,8 @@ class Tagalys_Core_Model_Client extends Mage_Core_Model_Abstract {
         Mage::log(json_encode(compact('level', 'message', 'data')), null, 'tagalys.log');
         if ($this->_api_server != false && $level != 'local') {
             $log_params = array('log_level' => $level, 'log_message' => $message);
+            $platform_version_info = Mage::getVersionInfo();
+            $log_params['log_client'] = array('platform' => 'Magento-' . Mage::getEdition() . '-' . $platform_version_info['major'], 'platform_version' => Mage::getVersion(), 'plugin' => Mage::getStoreConfig('tagalys/package/name'), 'plugin_version' => Mage::getStoreConfig('tagalys/package/version'));
             if ($data != null) {
                 if (array_key_exists('store_id', $data)) {
                     $log_params['log_store_id'] = $data['store_id'];

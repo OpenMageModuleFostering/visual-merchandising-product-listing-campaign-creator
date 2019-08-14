@@ -11,7 +11,7 @@ class Tagalys_Analytics_IndexController extends Mage_Core_Controller_Front_Actio
                 }
             }
         }
-        echo json_encode($productsData);
+        $this->getResponse()->setBody(json_encode($productsData));
     }
 
     public function getProductDetails($details) {

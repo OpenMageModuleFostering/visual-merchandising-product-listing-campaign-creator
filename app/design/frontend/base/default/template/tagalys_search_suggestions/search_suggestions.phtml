@@ -135,7 +135,8 @@
                         exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
                         fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
                     },
-                    track: 'asynchronous'
+                    track: 'asynchronous',
+                    align_to_parent: '<?php echo Mage::getModel('tagalys_core/config')->getTagalysConfig('suggestions_align_to_parent_selector') ?>'
                 });
             }
             catch(err) {

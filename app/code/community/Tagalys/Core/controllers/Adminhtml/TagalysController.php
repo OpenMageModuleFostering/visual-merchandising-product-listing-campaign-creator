@@ -71,6 +71,7 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
                 case 'Save Search Suggestions Settings':
                     Mage::getModel('tagalys_core/config')->setTagalysConfig('module:search_suggestions:enabled', $params['enable_searchsuggestions']);
                     Mage::getModel('tagalys_core/config')->setTagalysConfig('search_box_selector', $params['search_box_selector']);
+                    Mage::getModel('tagalys_core/config')->setTagalysConfig('suggestions_align_to_parent_selector', $params['suggestions_align_to_parent_selector']);
                     $redirect_to_tab = 'search_suggestions';
                     break;
                 case 'Save Search Settings':

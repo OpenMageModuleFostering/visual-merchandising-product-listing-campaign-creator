@@ -18,9 +18,10 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
             $productFields->name = $product->getName();
             $productFields->link = $product->getProductUrl();
             $productFields->sku = $product->getData('sku');
-            $attributes = $product->getAttributes();
+            $attributes = $product->getTypeInstance(false)->getEditableAttributes($product);
             foreach ($attributes as $attribute) {
-                if ($attribute->getIsFilterable() || $attribute->getIsSearchable()) {
+                $is_for_display = ((bool)$attribute->getUsedInProductListing() && (bool)$attribute->getIsUserDefined());
+                if ($attribute->getIsFilterable() || $attribute->getIsSearchable() || $is_for_display) {
                     $attr = $product->getResource()->getAttribute($attribute->getAttributeCode());
                     if (!$attr->usesSource()) {
                         $field_val = $attribute->getFrontend()->getValue($product);
@@ -42,7 +43,8 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
                 $productFields->sale_price = $product->getFinalPrice();
                 $productFields->price = $product->getPrice();
             }
-
+            $utc_now = new DateTime("now", new DateTimeZone('UTC'));
+            $time_now =  $utc_now->format(DateTime::ATOM);
             $product_data->synced_at = $time_now;
             $productFields->image_url = Mage::getModel('catalog/product_media_config')->getMediaUrl( $product->getImage());
             $fields = array('created_at');
@@ -98,9 +100,10 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
             $attributeObj[] = array("tag_set" => array("id" => "__categories", "label" => "Categories" ), "items" => ($categories));
         }
 
-        $attributes = $product->getAttributes();
+        $attributes = $product->getTypeInstance(false)->getEditableAttributes($product);
         foreach ($attributes as $attribute) {
-            if ($attribute->getIsFilterable() || $attribute->getIsSearchable()) {
+            $is_for_display = ((bool)$attribute->getUsedInProductListing() && (bool)$attribute->getIsUserDefined());
+            if ($attribute->getIsFilterable() || $attribute->getIsSearchable() || $is_for_display) {
                 $product_attribute = $product->getResource()->getAttribute($attribute->getAttributeCode());
                 if ($product_attribute->usesSource()) {
                     // select, multi-select

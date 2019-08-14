@@ -15,9 +15,7 @@ class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
         $product_data = $details_model->getProductFields($product_id, $store_id);
         $product_data->__tags = $attributes;
 
-        if (!$forAnalytics) {
-            $product_data->synced_at = $time_now;
-        }
+        $product_data->synced_at = $time_now;
 
         return $product_data;
     }
@@ -86,13 +84,16 @@ class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
             'price' => 'float'
         );
         foreach ($attributes as $attribute){
-            if ($attribute->getIsFilterable() || $attribute->getIsSearchable()) {
+            $is_for_display = ((bool)$attribute->getUsedInProductListing() && (bool)$attribute->getIsUserDefined());
+            if ($attribute->getIsFilterable() || $attribute->getIsSearchable() || $is_for_display) {
                 if ($attribute->getFrontendInput() == "select" || $attribute->getFrontendInput() == "multiselect") {
+                    
                     $tag_sets[] = array(
                         'id' => $attribute->getAttributecode(),
                         'label' => $attribute->getStoreLabel($store_id),
                         'filters' => (bool)$attribute->getIsFilterable(),
-                        'search' => (bool)$attribute->getIsSearchable()
+                        'search' => (bool)$attribute->getIsSearchable(),
+                        'display' => $is_for_display
                     );
                 } else if (!in_array($attribute->getAttributecode(), $tagalys_core_fields)) {
                     // custom field
@@ -107,7 +108,7 @@ class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
                         'label' => $attribute->getStoreLabel($store_id),
                         'type' => $type,
                         'currency' => $is_price_field,
-                        'display' => $is_price_field,
+                        'display' => ($is_for_display || $is_price_field),
                         'filters' => (bool)$attribute->getIsFilterable(),
                         'search' => (bool)$attribute->getIsSearchable()
                     );

@@ -60,6 +60,11 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
     public function cron() {
         $utc_now = new DateTime("now", new DateTimeZone('UTC'));
         $time_now = $utc_now->format(DateTime::ATOM);
+        $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->getTagalysConfig("cron_heartbeat_sent");
+        if ($cron_heartbeat_sent == false) {
+            Mage::getSingleton('tagalys_core/client')->log('info', 'Cron heartbeat');
+            $cron_heartbeat_sent = Mage::getModel('tagalys_core/config')->setTagalysConfig("cron_heartbeat_sent", true);
+        }
         Mage::getModel('tagalys_core/config')->setTagalysConfig("heartbeat:cron", $time_now);
         $stores = Mage::getModel('tagalys_core/config')->getTagalysConfig("stores", true);
         if ($stores != NULL) {

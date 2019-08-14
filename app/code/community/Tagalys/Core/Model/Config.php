@@ -45,7 +45,9 @@ class Tagalys_Core_Model_Config extends Mage_Core_Model_Abstract {
         if ($configValue === NULL) {
             $defaultConfigValues = array(
                 'setup_status' => 'api_credentials',
-                'search_box_selector' => '#search'
+                'search_box_selector' => '#search',
+                'cron_heartbeat_sent' => false,
+                'suggestions_align_to_parent_selector' => ''
             );
             if (array_key_exists($config, $defaultConfigValues)) {
                 $configValue = $defaultConfigValues[$config];

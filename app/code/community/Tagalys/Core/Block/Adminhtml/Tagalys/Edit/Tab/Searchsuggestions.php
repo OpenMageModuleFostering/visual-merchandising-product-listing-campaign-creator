@@ -47,6 +47,16 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Searchsuggestions extends Ma
             'tabindex' => 1
         ));
 
+        $fieldset->addField('suggestions_align_to_parent_selector', 'text', array(
+            'name'      => 'suggestions_align_to_parent_selector',
+            'label'     => $this->__('Align suggestions to search box parent'),
+            'value'  => Mage::getModel('tagalys_core/config')->getTagalysConfig("suggestions_align_to_parent_selector"),
+            'required'  => false,
+            'style'   => "width:100%",
+            'after_element_html' => '<small>If you want to align the search suggestions popup under a parent of the search box instead of the search box itself, specify the selector here.<br>This can be any jQuery selector.<br>Eg: #search-and-icon-container</small>',
+            'tabindex' => 1
+        ));
+
         $fieldset->addField('submit', 'submit', array(
             'name' => 'tagalys_submit_action',
             'value' => 'Save Search Suggestions Settings',
