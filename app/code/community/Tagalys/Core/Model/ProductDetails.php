@@ -31,17 +31,25 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
                     }
                 }
             }
-            if ($product->getTypeId() == Mage_Catalog_Model_Product_Type::TYPE_BUNDLE) {
-                $arr = $product->getTypeInstance(true)->getChildrenIds($product->getId(), false);
-                foreach($arr[key($arr)] as $k => $v) {
-                    $price[] = Mage::getModel('catalog/product')->load($v)->getFinalPrice();
-                    $mrp[] = Mage::getModel('catalog/product')->load($v)->getPrice();
-                }
-                $productFields->sale_price = min($price);
-                $productFields->price = min($mrp);
-            } else {
-                $productFields->sale_price = $product->getFinalPrice();
-                $productFields->price = $product->getPrice();
+            $productType = $product->getTypeId();
+            switch($productType) {
+                case Mage_Catalog_Model_Product_Type::TYPE_GROUPED:
+                    $associatedProducts = $product->getTypeInstance(true)->getAssociatedProducts($product);
+                    foreach($associatedProducts as $associatedProduct) {
+                        $price[] = $associatedProduct->getFinalPrice();
+                        $mrp[] = $associatedProduct->getPrice();
+                    }
+                    $productFields->sale_price = min($price);
+                    $productFields->price = min($mrp);
+                    break;
+                case Mage_Catalog_Model_Product_Type::TYPE_BUNDLE:
+                    $productFields->sale_price = Mage::getModel('bundle/product_price')->getTotalPrices($product,'min',1);
+                    $productFields->price = Mage::getModel('bundle/product_price')->getTotalPrices($product,'min',1);
+                    break;
+                default:
+                    $productFields->sale_price = $product->getFinalPrice();
+                    $productFields->price = $product->getPrice();
+                    break;
             }
             $utc_now = new DateTime("now", new DateTimeZone('UTC'));
             $time_now =  $utc_now->format(DateTime::ATOM);

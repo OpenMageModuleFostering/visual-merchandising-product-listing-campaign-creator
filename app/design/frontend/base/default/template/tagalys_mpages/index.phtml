@@ -4,7 +4,7 @@
 
 <script type="text/javascript">
     (function( $ ) {
-        $(document).on('tagalys:init', function() {
+        $(document).on('tagalys:ready', function() {
             <?php $params = Mage::app()->getRequest()->getParams(); ?>
             $('#tagalys-namespace').tagalys_mpage({ name: '<?php echo $params['mpage'] ?>' });
         });
