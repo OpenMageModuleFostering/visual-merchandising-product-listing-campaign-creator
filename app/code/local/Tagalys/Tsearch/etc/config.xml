@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<config>
+	<default>
+		<tsearch>
+			<endpoint>
+				<search>/v1/search</search>
+			</endpoint>
+		</tsearch>
+	</default>
+	<modules>
+		<Tagalys_Tsearch>
+			<version>0.2.0</version>
+		</Tagalys_Tsearch>
+	</modules>
+	<frontend>
+		<layout> <!-- layout declaration -->
+			<updates>
+				<tagalys_tsearch>
+					<file>Tagalys/tsearch.xml</file>
+				</tagalys_tsearch>
+			</updates>
+		</layout>
+	</frontend>
+	<global>
+		<helpers>
+			<tsearch>
+				<class>Tagalys_Tsearch_Helper</class>
+			</tsearch>
+		</helpers>
+		<blocks>
+			<tsearch>
+				<class>Tagalys_Tsearch_Block</class>
+			</tsearch>
+			<catalog>
+				<rewrite>
+					<product_list>Tagalys_Tsearch_Block_Catalog_Product_List</product_list>
+					<product_list_toolbar>Tagalys_Tsearch_Block_Catalog_Product_List_Toolbar</product_list_toolbar>
+				</rewrite>
+			</catalog>
+		<!-- 	<catalogsearch>
+				<rewrite>
+					<result>Tagalys_Tsearch_Block_Catalogsearch_Result</result>
+				</rewrite>
+			</catalogsearch> -->
+			<catalogsearch>
+				<rewrite>
+					<layer>Tagalys_Tsearch_Block_Catalogsearch_Layer_View</layer>
+				</rewrite>
+			</catalogsearch>
+			<!-- <catalog>
+				<rewrite>
+					<state>Mage_Catalog_Block_Layer_State</state>
+				</rewrite>
+			</catalog>   -->
+		</blocks>
+		<models>
+			<tsearch>
+				<class>Tagalys_Tsearch_Model</class>
+			</tsearch>
+			<tsearch>
+				<resourceModel>tsearch_resource</resourceModel>
+			</tsearch>
+			<tsearch_resource>
+				<class>Tagalys_Tsearch_Model_Resource</class>
+			</tsearch_resource>
+			<catalog>
+				<rewrite>
+					<layer>Tagalys_Tsearch_Model_Catalogsearch_Layer</layer>
+				</rewrite>
+			</catalog>
+		</models>
+		<!-- <resources>
+			<tsearch_setup>
+				<setup>
+					<module>Tagalys_Tsearch</module>
+					<class>Mage_Core_Model_Resource_Setup</class>
+				</setup>
+			</tsearch_setup>
+		</resources> -->
+		<events>
+			<controller_action_predispatch_catalogsearch_result_index> 
+				<observers>
+					<controller_action_predispatch_catalogsearch_result_handler> 
+						<type>model</type> 
+						<class>tsearch/observer</class> 
+						<method>createSearchResultPage</method>  
+						<args></args> 
+					</controller_action_predispatch_catalogsearch_result_handler>
+				</observers>
+			</controller_action_predispatch_catalogsearch_result_index>
+		</events>
+	</global>
+</config>

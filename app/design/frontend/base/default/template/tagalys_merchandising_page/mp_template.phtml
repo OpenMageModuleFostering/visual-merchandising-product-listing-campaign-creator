@@ -1,0 +1,28 @@
+<?php 
+	$helper = Mage::helper('tagalys_core');
+	// $html = str_get_html($helper->getTagalysConfig('merchandising_page_template'));
+
+	// $html->find('h1')->innertext = "Merchandising Page";
+
+	// var_dump($this->getVariable('res'));
+
+	$service = Mage::helper("merchandisingpage");
+	$res = $service->getTagalysSearchData();
+	// var_dump($res);
+
+	$html = $helper->getTagalysConfig('merchandising_page_template');
+
+	if (isset($res['variables']['title'])) {
+		$html = str_replace("{{title}}", $res['variables']['title'], $html);
+	}
+
+	if (isset($res['variables']['description'])) {
+		$html = str_replace("{{description}}", $res['variables']['description'], $html);
+	}
+
+	if (isset($res['variables']['banner_image_url'])) {
+		$html = str_replace("{{banner_image_url}}", $res['variables']['banner_image_url'], $html);
+	}
+
+	echo $html;
+?>

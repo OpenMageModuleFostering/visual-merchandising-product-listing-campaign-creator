@@ -1,0 +1,159 @@
+<script type="text/javascript">
+
+var sync = function(transport) {
+  // var e = "#sync_store_"+transport.request.parameters.store+" "+".status";
+  
+  try {
+    var status = "#sync_store_"+transport.request.parameters.store+" "+".status";
+
+    var message = "#sync_msg_"+transport.request.parameters.store;
+    if ($$(status).length > 0)
+      $$(status)[0].update('Loading ..');
+    if ($$(message).length > 0)
+      $$(message)[0].update('');
+    if(/^\d+$/.test(transport.responseText)) {
+      if(transport.responseText == 100) {
+        // clearInterval(f);
+      }
+      if ($$(status).length > 0)
+        $$(status)[0].update(transport.responseText+"%");
+    } else {
+
+      if ($$(message).length > 0)
+        if ($$(message).length == "Completed") {
+         $$(status)[0].update('Completed');
+         $$(message)[0].update('');
+       }       
+       else
+        $$(status)[0].update(transport.responseText);
+    }
+
+  } catch (e) {
+    clearInterval(s);
+    console.log(e);
+  }
+  
+};
+
+var searchStatus = function(transport) {
+
+  try {
+    var status = "#search_store_"+transport.request.parameters.store+" "+".status";
+    var message = "#search_msg_"+transport.request.parameters.store;
+    if ($$(status).length > 0)
+      $$(status)[0].update('Loading ..');
+    if ($$(message).length > 0)
+      $$(message)[0].update('');
+    if(/^\d+$/.test(transport.responseText)) {
+      if(Number(transport.responseText) == 100) {
+        // clearInterval(s);
+      }
+      if ($$(status).length > 0)
+        $$(status)[0].update(transport.responseText+"%");
+    } else {
+
+      if ($$(message).length > 0)
+        if ($$(message).length == "Completed") {
+         $$(status)[0].update('Completed');
+         $$(message)[0].update('');
+       }       
+       else
+       $$(status)[0].update(transport.responseText);
+    }
+  } catch (e) {
+    clearInterval(f);
+    console.log(e);
+  }
+  
+};
+
+
+
+function feed_auto_load(storeId) {
+  new Ajax.Request(
+    "<?php echo Mage::helper('adminhtml')->getUrl('tagalys/feed/progress/'); ?>", 
+    {
+      method:     'GET',
+      loaderArea: false,
+      parameters: {"store":storeId},
+      onSuccess : sync
+            // onFailure : failure
+          }
+          );
+}
+
+function search_auto_load(storeId) {
+  new Ajax.Request(
+    "<?php echo Mage::helper('adminhtml')->getUrl('tagalys/feed/searchStatus/'); ?>", 
+    {
+      method:     'GET',
+      loaderArea: false,
+      parameters: {"store":storeId},
+      onSuccess : searchStatus
+            // onFailure : failure
+          }
+          );
+
+}
+
+function button_auto_load(){
+
+  new Ajax.Request(
+    "<?php echo Mage::helper('adminhtml')->getUrl('tagalys/feed/enableButton/'); ?>", 
+    {
+      method:     'GET',
+      loaderArea: false,
+      onSuccess : function(transport) {
+        if(transport.responseText == "1") {
+          $$("#admin_tagalys_reload")[0].show();
+          clearInterval(btn);
+        } else {
+          $$("#admin_tagalys_reload")[0].hide();
+        }
+      }
+
+    }
+    );
+
+}
+
+function fauto_load() {
+  <?php foreach (Mage::helper("sync/data")->getSelectedStore() as $key => $value): ?>
+  <?php $resync = Mage::helper('tagalys_core')->getTagalysConfig('resync'); ?>
+  <?php if(!(int) Mage::helper('tagalys_core')->getTagalysConfig('search_index_'.$value) || !empty($resync)): ?>
+  
+  feed_auto_load('<?php echo $value ?>');
+  <?php endif ?>
+  <?php endforeach ?>
+}
+function sauto_load() {
+  <?php foreach (Mage::helper("sync/data")->getSelectedStore() as $key => $value): ?>
+  <?php $resync = Mage::helper('tagalys_core')->getTagalysConfig('resync'); ?>
+  <?php if(!(int) Mage::helper('tagalys_core')->getTagalysConfig('search_index_'.$value) || !empty($resync)): ?>
+
+  search_auto_load('<?php echo $value ?>');
+  <?php endif ?>
+  <?php endforeach ?>
+}
+
+
+document.addEventListener("DOMContentLoaded", function(event) { 
+  <?php if(Mage::helper('tagalys_core')->getTagalysConfig('search_complete')): ?>
+  $$("#admin_tagalys_reload")[0].show();
+  <?php else: ?>
+  $$("#admin_tagalys_reload")[0].hide();
+  <?php endif ?>
+  <?php foreach (Mage::helper("sync/data")->getSelectedStore() as $key => $value): ?>
+
+  search_auto_load('<?php echo $value ?>');
+  feed_auto_load('<?php echo $value ?>');
+  
+  <?php endforeach ?>
+
+});
+
+//Refresh auto_load() function after 10000 milliseconds
+f = setInterval(fauto_load,5000);
+s = setInterval(sauto_load,5000);
+btn = setInterval(button_auto_load, 1000);
+</script>

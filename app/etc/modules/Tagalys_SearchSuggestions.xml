@@ -1,0 +1,26 @@
+<?xml version = "1.0"?>
+<config>
+  <modules>
+    <Tagalys_SearchSuggestions>
+      <active>true</active>
+      <codePool>local</codePool>            
+      <version>1.0.0</version>
+    </Tagalys_SearchSuggestions>
+    <Tagalys_PopularSearches>
+      <active>true</active>
+      <codePool>local</codePool>            
+      <version>1.0.0</version>
+    </Tagalys_PopularSearches>
+    <Tagalys_Core>
+      <active>true</active>
+      <codePool>local</codePool>            
+      <version>0.2.0</version>
+    </Tagalys_Core>
+    <Tagalys_Sync>
+      <active>true</active>
+      <codePool>local</codePool>            
+      <version>0.2.0</version>
+    </Tagalys_Sync>
+  </modules>
+</config>
+

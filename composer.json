@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/visual-merchandising-product-listing-campaign-creator",
+    "type": "magento-module",
+    "license": "Tagalys",
+    "homepage": "",
+    "description": "Instantly create product listing pages. Add banners, SEO variables, pin products etc. Improve marketing ROI.",
+    "authors": [
+    {
+        "name": "Aaditya",
+        "email": "antony@tagalys.com"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}

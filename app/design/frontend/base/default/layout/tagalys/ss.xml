@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <default>
+    <block type="core/template" name="tagalys_ss" output="toHtml" template="tagalys/tagalys_ss.phtml"/>
+  </default>
+</layout>
+

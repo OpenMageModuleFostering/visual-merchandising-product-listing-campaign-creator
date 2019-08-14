@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+
+<config>
+  <modules>
+    <Tagalys_Core>
+      <version>0.2.0</version>
+    </Tagalys_Core>
+  </modules>
+  
+  <global>
+    <events>
+      <controller_action_postdispatch>
+        <observers>
+          <controller_action_after>
+           <class>tagalys_core/observer</class>
+           <method>tagalys_distpatch</method>
+         </controller_action_after>
+       </observers>
+     </controller_action_postdispatch>
+     <tagalys_custom_config_event>
+      <observers>
+        <tagalys_custom_config_event_handler>
+          <type>singleton</type>
+          <class>tagalys_core/observer</class>
+          <method>getTagalysConfig</method>
+          <args></args>
+        </tagalys_custom_config_event_handler>
+      </observers>
+    </tagalys_custom_config_event>
+    <tagalys_auth_event>
+      <observers>
+        <tagalys_auth_event_handler>
+          <type>singleton</type>
+          <class>tagalys_core/observer</class>
+          <method>authClient</method>
+          <args></args>
+        </tagalys_auth_event_handler>
+      </observers>
+    </tagalys_auth_event>
+    <start_init_sync>
+      <observers>
+        <start_init_sync_handler>
+          <type>singleton</type>
+          <class>tagalys_core/startInitialSync</class>
+          <method>authClient</method>
+          <args></args>
+        </start_init_sync_handler>
+      </observers>
+    </start_init_sync>
+    <tagalys_client_config>
+      <observers>
+        <tagalys_client_config_handler>
+          <type>singleton</type>
+          <class>tagalys_core/observer</class>
+          <method>ValidateClientConfig</method>
+          <args></args>
+        </tagalys_client_config_handler>
+      </observers>
+    </tagalys_client_config>
+  </events>
+  <models>
+    <tagalys_core>
+      <class>Tagalys_Core_Model</class>
+      <resourceModel>tagalys_core_mysql4</resourceModel>
+    </tagalys_core>
+    <tagalys_core_mysql4>
+      <class>Tagalys_Core_Model_Mysql4</class>
+      <entities>
+        <config>
+          <table>tagalys_core_config</table>
+        </config>
+      </entities>
+    </tagalys_core_mysql4>
+  </models>
+
+  <resources>
+    <tagalys_core_setup>
+      <setup>
+        <module>Tagalys_Core</module>
+      </setup>
+      <connection>
+        <use>core_setup</use>
+      </connection>
+    </tagalys_core_setup>
+    <tagalys_core_write>
+      <connection>
+        <use>core_write</use>
+      </connection>
+    </tagalys_core_write>
+    <tagalys_core_read>
+      <connection>
+        <use>core_read</use>
+      </connection>
+    </tagalys_core_read>
+  </resources>
+
+  <blocks>
+    <tagalys_core>
+      <class>Tagalys_Core_Block</class>
+    </tagalys_core>
+  </blocks>
+
+  <helpers>
+    <tagalys_core>
+      <class>Tagalys_Core_Helper</class>
+    </tagalys_core>
+  </helpers>
+</global>
+
+<admin>
+  <routers>
+    <adminhtml>
+      <args>
+        <modules>
+          <tagalys_core before="Mage_Adminhtml">Tagalys_Core_Adminhtml_Tagalys</tagalys_core>
+        </modules>
+      </args>
+    </adminhtml>
+  </routers>
+</admin>
+<adminhtml>
+  <!-- The <layout> updates allow us to define our block layouts in a separate file so are aren't messin' with the Magento layout files.  -->
+  <layout>
+    <updates>
+      <tagalys_core>
+        <file>Tagalys_core.xml</file>
+      </tagalys_core>
+    </updates>
+  </layout>
+  <!-- The <acl> section is for access control. Here we define the pieces where access can be controlled within a role. -->
+  <acl>
+    <resources>
+      <admin>
+        <children>
+          <tagalys_core>
+            <title>Tagalys</title>
+            <children>
+              <example translate="title" module="tagalys_core">
+                <title>Core</title>
+              </example>
+            </children>
+          </tagalys_core>
+        </children>
+      </admin>
+    </resources>
+  </acl>
+</adminhtml>
+<crontab>
+  <jobs>
+    <tagalys_config_cron>
+      <schedule>
+        <cron_expr>0 1,13 * * *</cron_expr>
+      </schedule>
+      <run>
+        <model>tagalys_core/observer::ValidateClientConfig</model>
+      </run>
+    </tagalys_config_cron>
+  </jobs>
+</crontab>
+</config>

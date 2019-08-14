@@ -1,0 +1,117 @@
+
+<?php 
+if(Mage::helper('tagalys_core')->getTagalysConfig('setup_complete') && Mage::helper('tagalys_core')->getTagalysConfig('search_complete') && Mage::helper('tagalys_core')->getTagalysConfig('is_tsearchsuggestion_active')): ?>
+<script type="text/javascript" src="https://s3-ap-southeast-1.amazonaws.com/tagalys-assets/ss-v2.js"></script>
+<script type="text/javascript">
+
+<?php
+if( Mage::helper('core')->isModuleEnabled('Tagalys_Tsearch') ){
+  if(Mage::helper('core')->isModuleEnabled('Tagalys_Tsearch') && Mage::helper('tagalys_core')->getTagalysConfig('is_tsearch_active')){
+    $tagalys_enabled = true;
+  } else {
+    $tagalys_enabled = false;
+  }
+}
+?>
+  tagalys_base_url = "<?php echo Mage::helper('catalogsearch')->getResultUrl(""); ?>";
+  base_url = "<?php echo  Mage::getBaseUrl(); ?>";
+  function load_script_asyncronously(url, callback) {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.async = true;
+    if (script.readyState) {
+      script.onreadystatechange = function () {
+        if (script.readyState == "loaded" || script.readyState == "complete") {
+          script.onreadystatechange = null;
+          if (callback && typeof callback === "function") {
+            callback();
+          }
+        }
+      };
+    } else {
+      script.onload = function () {
+        if (callback && typeof callback === "function") {
+          callback();
+        }
+      };
+    }
+    script.src = url;
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
+  }
+  try {
+    (function( $ ) {
+      console.log("Loading tagalys search suggestions");
+
+      $.fn.tagalys_search_suggestions.search_link = function( q, qf, qin ) {
+        var cat_base_url = base_url+"catalog/category/view/id/";
+        var search_url_base = tagalys_base_url;
+        if (typeof(qf) == 'undefined' || $.isEmptyObject(qf)) {
+          return (search_url_base + encodeURIComponent(q));
+        } else {
+          <?php 
+          if($tagalys_enabled): ?> //{
+            str = Object.keys(qf).map(function(key){ 
+              if(key == "__categories")
+                keyword = "cat";
+              else
+                keyword = key;
+              return  encodeURIComponent(keyword) + "-"+ encodeURIComponent(qf[key]); 
+            }).join('~');
+            qf_param = encodeURIComponent("qf") + '=' + str;
+
+            return tagalys_base_url.concat(encodeURIComponent(q) +"&"+qf_param);
+          //} 
+          <?php else: ?> //{
+           if (typeof(qin) == "undefined" ) {
+            if (typeof(qf) != "undefined"  && qf.hasOwnProperty("__categories")) {
+              return cat_base_url+Number(qf["__categories"]);
+            }
+          }
+          var str = Object.keys(qf).map(function(key){ 
+            if(key == "__categories")
+              keyword = "cat";
+            else
+              keyword = key;
+            return encodeURIComponent(keyword) + '=' + encodeURIComponent(qf[key]); 
+          }).join('&');
+          return tagalys_base_url.concat(encodeURIComponent(q) +"&"+str);
+        // }
+        <?php endif ?>
+      }
+
+    };
+
+    $.fn.tagalys_search_suggestions.popular_searches  = function() {
+
+      <?php $popular_searches = (file_get_contents(Mage::getBaseDir("media"). DS ."tagalys" . DS."tagalys-popularsearches-".Mage::app()->getStore()->getStoreId().".json")); ?>
+      var popular_searches = '<?php echo $popular_searches ?>';
+      return popular_searches.length > 0 ? JSON.parse(popular_searches) : JSON.parse('[]');
+    };
+
+    $('<?php echo Mage::helper("tagalys_core")->getTagalysConfig("search_box") ?>').tagalys_search_suggestions({
+     align_to_parent: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("search_box_container") ?>',
+     api: {
+      server: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("api_server") ?>',
+      identification: {
+        client_code: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("client_code") ?>',
+        api_key: '<?php echo Mage::helper("tagalys_core")->getTagalysConfig("public_api_key") ?>',
+        store_id: '<?php echo Mage::app()->getStore()->getStoreId() ?>'
+      }
+    },
+    currency: {
+      <?php $currency = Mage::helper('search_suggestions')->getCurrentCurrency(); ?>
+      label: "<?php echo $currency[0]['label']; ?>",
+      exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
+      fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
+    }
+  });
+
+  }( jQuery ));
+} catch(err) {  //We can also throw from try block and catch it here
+  console.log(err);
+} 
+</script>
+<?php endif ?>
+
+
+
