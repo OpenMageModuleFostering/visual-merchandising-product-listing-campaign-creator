@@ -12,71 +12,76 @@
 
     <script>
         (function( $ ) {
-            $.fn.tagalys_search_suggestions.search_link = function( q, qf, qin ) {
-                var categories_base_url = "<?php echo  Mage::getBaseUrl(); ?>catalog/category/view/id/";
-                var tagalys_search_base_url = "<?php echo Mage::getUrl('tsearch'); ?>?q=";
-                var magento_search_base_url = "<?php echo Mage::helper('catalogsearch')->getResultUrl(""); ?>";
-                if (typeof(qf) == 'undefined' || $.isEmptyObject(qf)) {
-                    <?php if($tagalys_search_enabled): ?>
-                        return (tagalys_search_base_url + encodeURIComponent(q));
-                    <?php else: ?>
-                        return (magento_search_base_url + encodeURIComponent(q));
-                    <?php endif; ?>
-                } else {
-                    <?php if($tagalys_search_enabled): ?>
-                        str = Object.keys(qf).map(function(key){ 
-                            return  encodeURIComponent(key) + "-"+ encodeURIComponent(qf[key]); 
-                        }).join('~');
-                        qf_param = encodeURIComponent("qf") + '=' + str;
+            try {
+                $.fn.tagalys_search_suggestions.search_link = function( q, qf, qin ) {
+                    var categories_base_url = "<?php echo  Mage::getBaseUrl(); ?>catalog/category/view/id/";
+                    var tagalys_search_base_url = "<?php echo Mage::getUrl('tsearch'); ?>?q=";
+                    var magento_search_base_url = "<?php echo Mage::helper('catalogsearch')->getResultUrl(""); ?>";
+                    if (typeof(qf) == 'undefined' || $.isEmptyObject(qf)) {
+                        <?php if($tagalys_search_enabled): ?>
+                            return (tagalys_search_base_url + encodeURIComponent(q));
+                        <?php else: ?>
+                            return (magento_search_base_url + encodeURIComponent(q));
+                        <?php endif; ?>
+                    } else {
+                        <?php if($tagalys_search_enabled): ?>
+                            str = Object.keys(qf).map(function(key){ 
+                                return  encodeURIComponent(key) + "-"+ encodeURIComponent(qf[key]); 
+                            }).join('~');
+                            qf_param = encodeURIComponent("qf") + '=' + str;
 
-                        return tagalys_search_base_url.concat(encodeURIComponent(q) +"&"+qf_param);
-                    <?php else: ?>
-                        if (typeof(qin) == "undefined" ) {
-                            if (typeof(qf) != "undefined"  && qf.hasOwnProperty("__categories")) {
-                                return categories_base_url+Number(qf["__categories"]);
+                            return tagalys_search_base_url.concat(encodeURIComponent(q) +"&"+qf_param);
+                        <?php else: ?>
+                            if (typeof(qin) == "undefined" ) {
+                                if (typeof(qf) != "undefined"  && qf.hasOwnProperty("__categories")) {
+                                    return categories_base_url+Number(qf["__categories"]);
+                                }
                             }
-                        }
-                        var str = Object.keys(qf).map(function(key){ 
-                            if(key == "__categories")
-                                keyword = "cat";
-                            else
-                                keyword = key;
-                            return encodeURIComponent(keyword) + '=' + encodeURIComponent(qf[key]); 
-                        }).join('&');
-                        return magento_search_base_url.concat(encodeURIComponent(q) +"&"+str);
-                    <?php endif ?>
-                }
-            };
-            $.fn.tagalys_search_suggestions.popular_searches  = function() {
-                <?php
-                    try {
-                        $popular_searches = Mage::getModel('tagalys_core/config')->getTagalysConfig('store:'.Mage::app()->getStore()->getId().':popular_searches');
-                        if ($popular_searches) {
-                            echo 'return ' . $popular_searches . ';';
-                        } else {
+                            var str = Object.keys(qf).map(function(key){ 
+                                if(key == "__categories")
+                                    keyword = "cat";
+                                else
+                                    keyword = key;
+                                return encodeURIComponent(keyword) + '=' + encodeURIComponent(qf[key]); 
+                            }).join('&');
+                            return magento_search_base_url.concat(encodeURIComponent(q) +"&"+str);
+                        <?php endif ?>
+                    }
+                };
+                $.fn.tagalys_search_suggestions.popular_searches  = function() {
+                    <?php
+                        try {
+                            $popular_searches = Mage::getModel('tagalys_core/config')->getTagalysConfig('store:'.Mage::app()->getStore()->getId().':popular_searches');
+                            if ($popular_searches) {
+                                echo 'return ' . $popular_searches . ';';
+                            } else {
+                                echo 'return [];';
+                            }
+                        } catch (Exception $e) {
                             echo 'return [];';
                         }
-                    } catch (Exception $e) {
-                        echo 'return [];';
-                    }
+                    ?>
+                };
+                <?php
+                    $api_credentials = json_decode(Mage::getModel('tagalys_core/config')->getTagalysConfig("api_credentials"), true);
                 ?>
-            };
-            <?php
-                $api_credentials = json_decode(Mage::getModel('tagalys_core/config')->getTagalysConfig("api_credentials"), true);
-            ?>
-            $.fn.tagalys_public_api.server = '<?php echo $api_credentials['api_server'] ?>';
-            $.fn.tagalys_public_api.identification = {"client_code":"<?php echo $api_credentials['client_code'] ?>","api_key":"<?php echo $api_credentials['public_api_key'] ?>","store_id":"<?php echo Mage::app()->getStore()->getStoreId() ?>"};
-            <?php
-                $currency = Mage::helper('search_suggestions')->getCurrentCurrency();
-            ?>
-            $('#search').tagalys_search_suggestions({
-                currency: {
-                    label: "<?php echo $currency[0]['label']; ?>",
-                    exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
-                    fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
-                },
-                track: 'asynchronous'
-            });
+                $.fn.tagalys_public_api.server = '<?php echo $api_credentials['api_server'] ?>';
+                $.fn.tagalys_public_api.identification = {"client_code":"<?php echo $api_credentials['client_code'] ?>","api_key":"<?php echo $api_credentials['public_api_key'] ?>","store_id":"<?php echo Mage::app()->getStore()->getStoreId() ?>"};
+                <?php
+                    $currency = Mage::helper('search_suggestions')->getCurrentCurrency();
+                ?>
+                $('#search').tagalys_search_suggestions({
+                    currency: {
+                        label: "<?php echo $currency[0]['label']; ?>",
+                        exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
+                        fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
+                    },
+                    track: 'asynchronous'
+                });
+            }
+            catch(err) {
+                
+            }
         }( jQuery ));
     </script>
 <?php endif ?>

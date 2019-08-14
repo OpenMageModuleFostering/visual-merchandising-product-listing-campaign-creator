@@ -2,7 +2,7 @@
 <layout version="0.1.0">
     <default>
         <reference name="content">
-            <block type="core/template" template="tagalys_search_suggestions/search_suggestions.phtml" name="tagalys_search_suggestions" />
+            <block type="core/template" name="tagalys_search_suggestions" template="tagalys_search_suggestions/search_suggestions.phtml" />
         </reference>
     </default>
 </layout>

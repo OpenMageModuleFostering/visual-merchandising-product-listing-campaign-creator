@@ -4,7 +4,7 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
     protected $syncfield;
     protected $inventorySyncField;
 
-    public function getProductFields($productId, $store = null) {
+    public function getProductFields($productId, $store) {
         try {
             $this->_storeId = $store;
             $core_helper = Mage::helper('tagalys_core');
@@ -43,6 +43,7 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
                 $productFields->price = $product->getPrice();
             }
 
+            $product_data->synced_at = $time_now;
             $productFields->image_url = Mage::getModel('catalog/product_media_config')->getMediaUrl( $product->getImage());
             $fields = array('created_at');
             foreach ($fields as $key => $name) {
@@ -51,15 +52,13 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
                 $introduced_at->setTimeZone(new DateTimeZone('UTC'));
                 $productFields->introduced_at = $introduced_at->format(DateTime::ATOM);
             }
-
-            // $productFields->parent_id = $this->getProductParent($productId);
             $productFields->in_stock = Mage::getModel('catalog/product')->load($product->getId())->isSaleable();
 
             return $productFields;
 
         } catch (Exception $e) {
 
-        }   
+        }
     }
     public function getProductType($productId) {
         $product = Mage::getModel('catalog/product')->load($productId);

@@ -1,0 +1,44 @@
+<?php
+    $analyticsEvent = false;
+    try {
+        $analyticsEvent = Mage::getModel('core/cookie')->get('__ta_event');
+        if ($analyticsEvent == false) {
+            $analyticsEvent = Mage::registry('tagalys_analytics_event');
+        }
+        if ($analyticsEvent != false) {
+            $analyticsEvent = json_decode($analyticsEvent, true);
+            Mage::getModel('core/cookie')->delete('__ta_event');
+        }
+    } catch (Exception $e) {
+        // don't log this as it might happen too often
+    }
+?>
+<?php if ($analyticsEvent != false): ?>
+    <script>
+        try {
+            (function( $ ) {
+                $(function() {
+                    $.ajax({
+                        url: "<?php echo Mage::getUrl('tanalytics/index/details/'); ?>",
+                        data: { event_json: '<?php echo json_encode($analyticsEvent) ?>' },
+                        dataType: 'json',
+                        method: 'POST',
+                        context: <?php echo json_encode($analyticsEvent) ?>,
+                        success: function(data, textStatus, jqXHR) {
+                            for (var i = 0; i < this[3].length; i++) {
+                                if (this[2] == 'buy') {
+                                    $.fn.tagalys_analytics.track_event(this[1], $.extend({ action: this[2], order_id: this[4] }, data[i]));
+                                } else {
+                                    $.fn.tagalys_analytics.track_event(this[1], $.extend({ action: this[2] }, data[i]));
+                                }
+                            }
+                        }
+                    });
+                });
+            }( jQuery ));
+        }
+        catch(err) {
+            
+        }
+    </script>
+<?php endif; ?>

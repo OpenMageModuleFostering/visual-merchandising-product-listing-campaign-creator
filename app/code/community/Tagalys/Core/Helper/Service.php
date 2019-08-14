@@ -2,7 +2,7 @@
 class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
     protected $_storeId;
 
-    public function getProductPayload($product_id, $store_id, $admin = false) {
+    public function getProductPayload($product_id, $store_id) {
         $core_helper = Mage::helper('tagalys_core');
         $details_model = Mage::getModel("tagalys_core/productDetails");
 
@@ -13,8 +13,11 @@ class Tagalys_Core_Helper_Service extends Mage_Core_Helper_Abstract {
         Mage::app()->setCurrentStore($store_id);
         $attributes = $details_model->getProductAttributes($product_id, $store_id, array_keys((array) $product_data));
         $product_data = $details_model->getProductFields($product_id, $store_id);
-        $product_data->synced_at = $time_now;
         $product_data->__tags = $attributes;
+
+        if (!$forAnalytics) {
+            $product_data->synced_at = $time_now;
+        }
 
         return $product_data;
     }

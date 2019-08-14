@@ -39,8 +39,13 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Syncsettings extends Mage_Ad
         $setup_status = Mage::getModel('tagalys_core/config')->getTagalysConfig('setup_status');
         if ($setup_status == 'complete') {
         } else {
-            $fieldset->addField('note_cron', 'note', array(
-                'text' => $this->__('<small><b>NOTE: Please make sure Cron is setup and running. <a target=_blank href="http://devdocs.magento.com/guides/m1x/install/installing_install.html#install-cron">Cron Documentation</a></b></small>'),
+            $fieldset->addField('agree_cron_enabled', 'checkbox', array(
+                'name'      => 'Checkbox',
+                'checked' => false,
+                'onclick'   => 'this.value = this.checked ? 1 : 0;',
+                'disabled' => false,
+                'after_element_html' => '<small>Cron is enabled on this Magento installation.<br><em><b><a target=_blank href="http://devdocs.magento.com/guides/m1x/install/installing_install.html#install-cron">Cron Documentation</a></b></em></small>',
+                'tabindex' => 1
             ));
 
             $fieldset->addField('agree_start_sync', 'checkbox', array(
@@ -48,8 +53,12 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Syncsettings extends Mage_Ad
                 'checked' => false,
                 'onclick'   => 'this.value = this.checked ? 1 : 0;',
                 'disabled' => false,
-                'after_element_html' => '<small>I agree to start syncing the selected stores.<br><em>We recommend you to do this at low traffic hours.</em><br><em>Please enable the checkbox to save and start syncing.</em></small>',
+                'after_element_html' => '<small>I agree to start syncing the selected stores.<br><em><b>We recommend you to do this at low traffic hours.</b></em></small>',
                 'tabindex' => 1
+            ));
+
+            $fieldset->addField('note_checkboxes', 'note', array(
+                'text' => $this->__('<em>Please check both checkboxes to continue.</em>'),
             ));
 
             $fieldset->addField('submit', 'submit', array(

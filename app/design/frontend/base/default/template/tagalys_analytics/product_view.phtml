@@ -1,0 +1,25 @@
+<?php
+    $eventDetails = false;
+    try {
+        $eventDetails = array(
+            'action' => 'view',
+            'sku' => $this->getProduct()->getSku()
+        );
+    } catch (Exception $e) {
+        // don't log this as it might happen too often
+    }
+?>
+<?php if ($eventDetails != false): ?>
+    <script>
+        try {
+            (function( $ ) {
+                jQuery(function() {
+                    jQuery.fn.tagalys_analytics.track_event('product_action', <?php echo json_encode($eventDetails) ?>);
+                });
+            }( jQuery ));
+        }
+        catch(err) {
+            
+        }
+    </script>
+<?php endif; ?>
