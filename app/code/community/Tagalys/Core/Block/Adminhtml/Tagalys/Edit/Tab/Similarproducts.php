@@ -1,6 +1,6 @@
 <?php
 
-class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Searchsuggestions extends Mage_Adminhtml_Block_Widget_Form implements Mage_Adminhtml_Block_Widget_Tab_Interface {
+class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Similarproducts extends Mage_Adminhtml_Block_Widget_Form implements Mage_Adminhtml_Block_Widget_Tab_Interface {
 
     public function __construct() {
         parent::__construct();
@@ -18,12 +18,10 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Searchsuggestions extends Ma
         $form->setHtmlIdPrefix('admin_tagalys_core_');
         $htmlIdPrefix = $form->getHtmlIdPrefix();
 
-        $fieldset = $form->addFieldset('tagalys_searchsuggestions_fieldset', array('legend' => $this->__('Search Suggestions')));
+        $fieldset = $form->addFieldset('tagalys_similarproducts_fieldset', array('legend' => $this->__('Similar Products')));
 
-        $search_enabled = Mage::getModel('tagalys_core/config')->getTagalysConfig('module:search:enabled');
-
-        $fieldset->addField('enable_searchsuggestions', 'select', array(
-            'name' => 'enable_searchsuggestions',
+        $fieldset->addField('enable_similarproducts', 'select', array(
+            'name' => 'enable_similarproducts',
             'label' => 'Enable',
             'title' => 'Enable',
             'options' => array(
@@ -31,25 +29,19 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tab_Searchsuggestions extends Ma
                 '1' => $this->__('Yes'),
             ),
             'required' => true,
-            'disabled' => $search_enabled,
-            'after_element_html' => ($search_enabled ? '<small>Required for Search</small>' : ''),
+            'disabled' => false,
             'style' => 'width:100%',
-            'value' => Mage::getModel('tagalys_core/config')->getTagalysConfig("module:search_suggestions:enabled")
+            'value' => Mage::getModel('tagalys_core/config')->getTagalysConfig("module:similar_products:enabled")
         ));
 
-        $fieldset->addField('search_box_selector', 'text', array(
-            'name'      => 'search_box_selector',
-            'label'     => $this->__('Search box selector'),
-            'value'  => Mage::getModel('tagalys_core/config')->getTagalysConfig("search_box_selector"),
-            'required'  => true,
-            'style'   => "width:100%",
-            'after_element_html' => '<small>Please consult with your tech team or <a href="mailto:cs@tagalys.com">contact us</a>. <br>This can be any jQuery selector.<br>Eg: #search / .search-field / [type="search"]</small>',
-            'tabindex' => 1
+        $fieldset->addField('note_integration', 'note', array(
+            'label' => 'Integration',
+            'text' => 'Paste the following code at a desired location in your product view template at: <code><b>app/design/frontend/<em class="error">PACKAGE-NAME</em>/<em class="error">THEME-NAME</em>/template/catalog/product/view.phtml</b></code><br><br><code>'.htmlentities('<div id="tagalys-namespace" class="tagalys-namespace" data-tagalys-widget="similar_products" data-tagalys-widget-opts-product-id="<?php echo $_product->getId() ?>"></div>').'</code><br><br>',
         ));
 
         $fieldset->addField('submit', 'submit', array(
             'name' => 'tagalys_submit_action',
-            'value' => 'Save Search Suggestions Settings',
+            'value' => 'Save Similar Products Settings',
             'class'=> "tagalys-btn",
             'tabindex' => 1
         ));

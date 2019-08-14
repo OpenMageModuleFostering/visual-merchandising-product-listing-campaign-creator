@@ -70,6 +70,7 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
                     break;
                 case 'Save Search Suggestions Settings':
                     Mage::getModel('tagalys_core/config')->setTagalysConfig('module:search_suggestions:enabled', $params['enable_searchsuggestions']);
+                    Mage::getModel('tagalys_core/config')->setTagalysConfig('search_box_selector', $params['search_box_selector']);
                     $redirect_to_tab = 'search_suggestions';
                     break;
                 case 'Save Search Settings':
@@ -82,6 +83,10 @@ class Tagalys_Core_Adminhtml_TagalysController extends Mage_Adminhtml_Controller
                 case 'Save Merchandising Pages Settings':
                     Mage::getModel('tagalys_core/config')->setTagalysConfig('module:mpages:enabled', $params['enable_mpages']);
                     $redirect_to_tab = 'mpages';
+                    break;
+                case 'Save Similar Products Settings':
+                    Mage::getModel('tagalys_core/config')->setTagalysConfig('module:similar_products:enabled', $params['enable_similarproducts']);
+                    $redirect_to_tab = 'similar_products';
                     break;
                 case 'Trigger full products resync now':
                     Mage::getSingleton('tagalys_core/client')->log('warn', 'Triggering full products resync');

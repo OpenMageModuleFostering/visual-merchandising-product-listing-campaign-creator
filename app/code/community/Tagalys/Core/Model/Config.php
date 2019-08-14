@@ -44,7 +44,8 @@ class Tagalys_Core_Model_Config extends Mage_Core_Model_Abstract {
         $configValue = $this->getCollection()->addFieldToFilter('path',$config)->getFirstItem()->getData("value");
         if ($configValue === NULL) {
             $defaultConfigValues = array(
-                'setup_status' => 'api_credentials'
+                'setup_status' => 'api_credentials',
+                'search_box_selector' => '#search'
             );
             if (array_key_exists($config, $defaultConfigValues)) {
                 $configValue = $defaultConfigValues[$config];

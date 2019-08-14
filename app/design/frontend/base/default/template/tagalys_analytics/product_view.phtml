@@ -1,4 +1,4 @@
-<?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('search') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('mpages')): ?>
+<?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('search') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('mpages') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('similar_products')): ?>
     <?php
         $eventDetails = false;
         try {
@@ -14,7 +14,14 @@
         <script>
             try {
                 (function( $ ) {
-                    $.fn.tagalys_analytics.track_event('product_action', <?php echo json_encode($eventDetails) ?>);
+                    $(function() {
+                        try {
+                            $.fn.tagalys_analytics.track_event('product_action', <?php echo json_encode($eventDetails) ?>);
+                        }
+                        catch(err) {
+                            
+                        }
+                    });
                 }( jQuery ));
             }
             catch(err) {

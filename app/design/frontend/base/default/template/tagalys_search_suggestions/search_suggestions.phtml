@@ -1,19 +1,72 @@
-<?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('search') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('mpages')): ?>
+<?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('search') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('mpages') || Mage::helper('tagalys_core')->isTagalysModuleEnabled('similar_products')): ?>
     <script src='https://s3-ap-southeast-1.amazonaws.com/tagalys-assets/tagalys-plugins-v3.js' type='text/javascript'></script>
     <?php
         $api_credentials = json_decode(Mage::getModel('tagalys_core/config')->getTagalysConfig("api_credentials"), true);
+        $currency = Mage::helper('search_suggestions')->getCurrentCurrency();
     ?>
     <script>
         try {
             (function( $ ) {
                 $.fn.tagalys_public_api.server = '<?php echo $api_credentials['api_server'] ?>';
                 $.fn.tagalys_public_api.identification = {"client_code":"<?php echo $api_credentials['client_code'] ?>","api_key":"<?php echo $api_credentials['public_api_key'] ?>","store_id":"<?php echo Mage::app()->getStore()->getStoreId() ?>"};
+                $('body').tagalys_context({
+                    api_server: '<?php echo $api_credentials['api_server'] ?>',
+                    api_identification: {"client_code":"<?php echo $api_credentials['client_code'] ?>","api_key":"<?php echo $api_credentials['public_api_key'] ?>","store_id":"<?php echo Mage::app()->getStore()->getStoreId() ?>","currency":"<?php echo $currency[0]['id']; ?>"},
+                    currency: {
+                        label: "<?php echo $currency[0]['label']; ?>",
+                        exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",
+                        fractional_digits:"<?php echo  $currency[0]['fractional_digits']; ?>"
+                    }
+                });
+                $(document).trigger('tagalys:init');
             }( jQuery ));
         }
         catch(err) {
             
         }
     </script>
+    <?php
+        $analyticsEvent = false;
+        try {
+            $analyticsEvent = Mage::getModel('core/cookie')->get('__ta_event');
+            if ($analyticsEvent == false) {
+                $analyticsEvent = Mage::registry('tagalys_analytics_event');
+            }
+            if ($analyticsEvent != false) {
+                $analyticsEvent = json_decode($analyticsEvent, true);
+                Mage::getModel('core/cookie')->delete('__ta_event');
+            }
+        } catch (Exception $e) {
+            // don't log this as it might happen too often
+        }
+    ?>
+    <?php if ($analyticsEvent != false): ?>
+        <script>
+            try {
+                (function( $ ) {
+                    $.ajax({
+                        url: "<?php echo Mage::getUrl('tanalytics/index/details/'); ?>",
+                        data: { event_json: '<?php echo json_encode($analyticsEvent) ?>' },
+                        dataType: 'json',
+                        method: 'POST',
+                        context: <?php echo json_encode($analyticsEvent) ?>,
+                        success: function(data, textStatus, jqXHR) {
+                            for (var i = 0; i < this[3].length; i++) {
+                                if (this[2] == 'buy') {
+                                    $.fn.tagalys_analytics.track_event(this[1], $.extend({ action: this[2], order_id: this[4] }, data[i]));
+                                } else {
+                                    $.fn.tagalys_analytics.track_event(this[1], $.extend({ action: this[2] }, data[i]));
+                                }
+                            }
+                        }
+                    });
+                }( jQuery ));
+            }
+            catch(err) {
+                
+            }
+        </script>
+    <?php endif; ?>
 <?php endif; ?>
 <?php if(Mage::helper('tagalys_core')->isTagalysModuleEnabled('search_suggestions')): ?>
     <?php
@@ -76,10 +129,7 @@
                         }
                     ?>
                 };
-                <?php
-                    $currency = Mage::helper('search_suggestions')->getCurrentCurrency();
-                ?>
-                $('#search').tagalys_search_suggestions({
+                $('<?php echo Mage::getModel('tagalys_core/config')->getTagalysConfig('search_box_selector') ?>').tagalys_search_suggestions({
                     currency: {
                         label: "<?php echo $currency[0]['label']; ?>",
                         exchange_rate: "<?php echo  $currency[0]['exchange_rate']; ?>",

@@ -68,6 +68,10 @@ class Tagalys_Core_Block_Adminhtml_Tagalys_Edit_Tabs extends Mage_Adminhtml_Bloc
               'label' => 'Merchandising Pages',
               'content' => $this->getLayout()->createBlock('tagalys_core/adminhtml_tagalys_edit_tab_mpages')->toHtml(),
             ));
+            $this->addTab('similar_products', array(
+              'label' => 'Similar Products',
+              'content' => $this->getLayout()->createBlock('tagalys_core/adminhtml_tagalys_edit_tab_similarproducts')->toHtml(),
+            ));
         }
 
         $this->addTab('support', array(

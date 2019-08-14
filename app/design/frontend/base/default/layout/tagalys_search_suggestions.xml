@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <layout version="0.1.0">
     <default>
-        <reference name="content">
+        <reference name="before_body_end">
             <block type="core/template" name="tagalys_search_suggestions" template="tagalys_search_suggestions/search_suggestions.phtml" />
         </reference>
     </default>
