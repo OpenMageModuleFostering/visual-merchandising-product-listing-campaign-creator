@@ -16,8 +16,8 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
         $this->_sync_files_folder_with_path = Mage::getBaseDir('media'). DS .'tagalys';
         $this->checkAndCreateFolder($this->_sync_files_folder_with_path);
         $this->_sync_files_path = $this->_sync_files_folder_with_path . DS;
-        $this->per_page = 100;
-        $this->cron_instance_max_products = 1000;
+        $this->per_page = 50;
+        $this->cron_instance_max_products = 500;
         // parent::__construct();
     }
 
@@ -364,7 +364,11 @@ class Tagalys_Core_Helper_SyncFile extends Varien_Io_File {
                             $circuit_breaker += 1;
                             $products = $select->limit($this->per_page, $sync_file_status['completed_count'])->query();
                             foreach($products as $product) {
-                                $product_details = (array) Mage::helper("tagalys_core/service")->getProductPayload($product['entity_id'], $store_id);
+                                $forceRegenerateThumbnail = false;
+                                if ($type == 'updates') {
+                                    $forceRegenerateThumbnail = true;
+                                }
+                                $product_details = (array) Mage::helper("tagalys_core/service")->getProductPayload($product['entity_id'], $store_id, $forceRegenerateThumbnail);
                                 $this->streamWrite(json_encode(array("perform" => "index", "payload" => $product_details)) ."\r\n");
                                 $sync_file_status['completed_count'] += 1;
                                 $cron_instance_completed_products += 1;

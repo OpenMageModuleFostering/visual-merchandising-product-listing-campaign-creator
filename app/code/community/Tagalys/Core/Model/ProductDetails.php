@@ -4,9 +4,9 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
     protected $syncfield;
     protected $inventorySyncField;
 
-    public function getProductFields($productId, $store) {
+    public function getProductFields($productId, $storeId, $forceRegenerateThumbnail) {
         try {
-            $this->_storeId = $store;
+            $this->_storeId = $storeId;
             $core_helper = Mage::helper('tagalys_core');
             $product = Mage::getModel('catalog/product')->load($productId);
             if (is_null($this->_storeId)) {
@@ -46,7 +46,7 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
             $utc_now = new DateTime("now", new DateTimeZone('UTC'));
             $time_now =  $utc_now->format(DateTime::ATOM);
             $product_data->synced_at = $time_now;
-            $productFields->image_url = Mage::getModel('catalog/product_media_config')->getMediaUrl( $product->getImage());
+            $productFields->image_url = $this->getProductImageUrl($product, $storeId, $forceRegenerateThumbnail);
             $fields = array('created_at');
             foreach ($fields as $key => $name) {
                 $fieldValue = $product->getResource()->getAttribute($name)->getFrontend()->getValue($product);
@@ -154,5 +154,41 @@ class Tagalys_Core_Model_ProductDetails extends Mage_Core_Model_Abstract {
         }
 
         return ($attributeObj);
+    }
+    public function getProductImageUrl($product, $storeId, $forceRegenerateThumbnail) {
+        try {
+            $productImagePath = $product->getImage();
+            $baseProductImagePath = Mage::getBaseDir('media') . DS . "catalog" . DS . "product" . $productImagePath;
+            if(file_exists($baseProductImagePath)) {
+                $imageDetails = getimagesize($baseProductImagePath);
+                $width = $imageDetails[0];
+                $height = $imageDetails[1];
+                if ($width > 1 && $height > 1) {
+                    $resizedProductImagePath = Mage::getBaseDir('media') . DS . 'tagalys' . DS . 'product_thumbnails' . $productImagePath;
+                    if ($forceRegenerateThumbnail || !file_exists($resizedProductImagePath)) {
+                        if (file_exists($resizedProductImagePath)) {
+                            unlink($resizedProductImagePath);
+                        }
+                        $imageObj = new Varien_Image($baseProductImagePath);
+                        $imageObj->constrainOnly(TRUE);
+                        $imageObj->keepAspectRatio(TRUE);
+                        $imageObj->keepFrame(FALSE);
+                        $imageObj->resize(300, 300);
+                        $imageObj->save($resizedProductImagePath);
+                    }
+                    if (file_exists($resizedProductImagePath)) {
+                        return str_replace('http:', '', Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA) . 'tagalys' . DS . 'product_thumbnails' . $productImagePath);
+                    } else {
+                        // placeholder
+                        $placeholder_image = Mage::getStoreConfig("catalog/placeholder/small_image_placeholder");
+                        $media_base_url = Mage::app()->getStore()->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
+                        $media_url = $media_base_url . Mage::getModel('catalog/product_media_config')->getBaseMediaUrlAddition();
+                        return str_replace('http:', '', $media_url . DS . 'placeholder' . DS . $placeholder_image);
+                    }
+                }
+            }
+        } catch(Exception $e) {
+            
+        }
     }
 }
